@@ -11,12 +11,12 @@ router.post("/analyze", async (req, res) => {
   }
 
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = "AIzaSyArUa9bVSny-Nf_9y4LaNMvT3UF3BKYJhs";
     if (!apiKey) {
       return res.status(500).json({ error: "Gemini API key is missing in server configuration." });
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
     const requestBody = {
       contents: [

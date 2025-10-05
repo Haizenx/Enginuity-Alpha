@@ -2,7 +2,7 @@
 import React from 'react';
 // Removed axios import, as API calls are handled by the parent (QuotationPage.jsx)
 
-const ItemTable = ({ items, onItemDeleted, onEditItem }) => {
+const ItemTable = ({ items, onItemDeleted }) => {
   // Check if items is not an array or is empty
   if (!Array.isArray(items) || items.length === 0) {
     return (
@@ -31,15 +31,7 @@ const ItemTable = ({ items, onItemDeleted, onEditItem }) => {
     }
   };
 
-  const handleEdit = (item) => {
-    console.log("ItemTable: Edit button clicked for item:", item);
-    if (typeof onEditItem === 'function') {
-      onEditItem(item);
-    } else {
-      console.warn("WARNING: onEditItem prop is not provided as a function to ItemTable.");
-      alert("Edit functionality is not properly configured.");
-    }
-  };
+  // Edit action removed; items list is add/delete only
 
   return (
     <div className="overflow-x-auto mt-8 shadow-xl rounded-lg">
@@ -48,9 +40,6 @@ const ItemTable = ({ items, onItemDeleted, onEditItem }) => {
           <tr>
             <th className="py-3 px-6 text-left">Name</th>
             <th className="py-3 px-6 text-left">Unit</th>
-            <th className="py-3 px-6 text-right">Material Cost</th>
-            <th className="py-3 px-6 text-right">Labor Cost</th>
-            <th className="py-3 px-6 text-right">Total Cost</th>
             <th className="py-3 px-6 text-center">Actions</th>
           </tr>
         </thead>
@@ -60,29 +49,13 @@ const ItemTable = ({ items, onItemDeleted, onEditItem }) => {
               console.warn("ItemTable: Item is missing or does not have an _id. Skipping render:", item);
               return null; 
             }
-            const totalCost = Number(item.materialCost || 0) + Number(item.laborCost || 0);
             return (
               <tr key={item._id} className="border-b border-gray-200 hover:bg-gray-100">
                 <td className="py-3 px-6 text-left whitespace-nowrap">{item.name || "N/A"}</td>
                 <td className="py-3 px-6 text-left">{item.unit || "N/A"}</td>
-                <td className="py-3 px-6 text-right">
-                  {item.materialCost != null ? `₱${Number(item.materialCost).toFixed(2)}` : '-'}
-                </td>
-                <td className="py-3 px-6 text-right">
-                  {item.laborCost != null ? `₱${Number(item.laborCost).toFixed(2)}` : '-'}
-                </td>
-                <td className="py-3 px-6 text-right font-semibold">
-                  ₱{totalCost.toFixed(2)}
-                </td>
                 <td className="py-3 px-6 text-center whitespace-nowrap">
                   <button
-                    onClick={() => handleEdit(item)}
-                    className="text-xs bg-indigo-500 hover:bg-indigo-600 text-white py-1 px-3 rounded-full focus:outline-none focus:shadow-outline mr-2"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteTrigger(item)} // Pass the whole item object
+                    onClick={() => handleDeleteTrigger(item)}
                     className="text-xs bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-full focus:outline-none focus:shadow-outline"
                   >
                     Delete

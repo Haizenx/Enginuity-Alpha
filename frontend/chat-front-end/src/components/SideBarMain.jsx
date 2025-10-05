@@ -73,7 +73,6 @@ const SideBarMain = () => {
       { key: "dashboard", icon: <LayoutDashboard size={20} />, label: "Dashboard", path: "/dashboard" },
       { key: "chats", icon: <MessageSquareText size={20} />, label: "Chats", path: "/chats", badge: unreadCount },
       { key: "projects", icon: <ListChecks size={20} />, label: "Projects", path: "/projects" },
-      { key: "video", icon: <Video size={20} />, label: "Video Meetings", path: "/video-meetings" },
       { key: "blueprint", icon: <Folders size={20} />, label: "Blueprint Recommendation", path: "/blueprint" },
       { key: "quotation", icon: <File size={20} />, label: "Quotation", path: "/quotation" },
 

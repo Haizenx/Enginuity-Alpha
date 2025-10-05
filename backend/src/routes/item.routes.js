@@ -6,7 +6,9 @@ import {
   addItem,
   getItemById, // Good to have for fetching a single item, e.g., for an edit form prefill
   updateItem,
-  deleteItem
+  deleteItem,
+  setSupplierPrice,
+  getItemSupplierPrices
 } from '../controllers/item.controller.js'; // Make sure this path is correct
 
 const router = express.Router();
@@ -30,5 +32,9 @@ router.put('/:id', updateItem);
 // DELETE an item by ID
 // Uses the deleteItem controller function
 router.delete('/:id', deleteItem);
+
+// Supplier pricing for an item
+router.post('/:id/supplier-price', setSupplierPrice);
+router.get('/:id/supplier-prices', getItemSupplierPrices);
 
 export default router;

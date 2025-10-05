@@ -14,7 +14,6 @@ import ProfilePage from "./pages/ProfilePage";
 import ProjectPage from "./pages/ProjectPage";
 import DashboardPage from "./pages/Dashboard.jsx";
 import PayrollPage from "./pages/PayrollPage.jsx";
-import VideoConferencePage from "./pages/VideoConferencePage.jsx";
 import FileHandlingPage from "./pages/FileHandlingPage.jsx";
 import ProjectDetailsPage from "./pages/ProjectDetails.jsx";
 import BlueprintPage from "./pages/BlueprintPage.jsx";
@@ -76,7 +75,6 @@ const App = () => {
                 <Route path="/projects" element={<ProjectPage />} />
                 <Route path="/projects/:projectId" element={<ProjectDetailsPage />} />
                 <Route path="/payroll" element={<PayrollPage />} />
-                <Route path="/video-meetings" element={<VideoConferencePage />} />
                 <Route path="/file-handling" element={<FileHandlingPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />

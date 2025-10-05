@@ -34,6 +34,14 @@ const itemSchema = new mongoose.Schema({
     default: null, // Explicitly default to null or remove default
   }
   // --- End of adjustments ---
+  ,
+  supplierPrices: [
+    {
+      supplier: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier', required: true },
+      price: { type: Number, required: true },
+      currency: { type: String, default: 'PHP' }
+    }
+  ]
 }, { timestamps: true }); // Adds createdAt and updatedAt
 
 const Item = mongoose.model('Item', itemSchema);

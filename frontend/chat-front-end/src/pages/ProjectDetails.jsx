@@ -107,16 +107,15 @@ const ProjectDetails = () => {
         <div className="skeleton h-64 w-full" />
         <div className="max-w-[1400px] mx-auto px-4 py-6">
           <div className="skeleton h-8 w-56 mb-4" />
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-            <div className="lg:col-span-3 space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="skeleton h-64 w-full" />
-                <div className="skeleton h-64 w-full" />
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="skeleton h-24 w-full" />
+              <div className="skeleton h-64 w-full" />
               <div className="skeleton h-64 w-full" />
             </div>
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-1 space-y-8">
               <div className="skeleton h-40 w-full" />
+              <div className="skeleton h-64 w-full" />
               <div className="skeleton h-64 w-full" />
             </div>
           </div>
@@ -168,49 +167,46 @@ const ProjectDetails = () => {
         onOpenCoverUpload={() => setIsCoverModalOpen(true)}
       />
 
-      <div className="max-w-[1400px] mx-auto px-4 py-6">
-        {/* Project Description */}
-        <div className="mb-6">
-          <div className="bg-white rounded-lg shadow-sm p-5">
-            <h2 className="text-base font-semibold text-gray-900 mb-1">Project Description</h2>
-            <p className="text-gray-600">{project?.description || "No description available"}</p>
-          </div>
-        </div>
-
-        {/* Main Content Grid: dense */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-          {/* Left span (2 columns): Upcoming + Employees */}
-          <div className="lg:col-span-2 space-y-4">
-            <UpcomingDeadlines
-              activities={project?.activities || []}
-              onToggle={toggleActivityMapped}
-            />
-            <EmployeesCard
-              employees={project?.employees || []}
-              onAdd={addEmployee}
-              onRemove={removeEmployee}
-            />
-          </div>
-
-          {/* Middle span (1 column): Activities */}
-          <div className="lg:col-span-1 space-y-4">
+      {/* REVISED LAYOUT CONTAINER */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Main Content Grid: Switched to 3 columns for a cleaner 2/3 + 1/3 split */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          {/* Main Content Area (2/3 width) */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white rounded-lg shadow-sm p-5">
+              <h2 className="text-xl font-bold text-gray-900 mb-2">Project Overview</h2>
+              <p className="text-gray-600">{project?.description || "No description available."}</p>
+            </div>
+            
             <ActivitiesCard
               activities={project?.activities || []}
               onAdd={addActivityMapped}
               onDelete={deleteActivity}
             />
-          </div>
 
-          {/* Right span (2 columns): Progress + Documents */}
-          <div className="lg:col-span-2 space-y-4">
-            <ProjectProgress progress={progressPct} completed={completedActs} total={totalActs} />
             <DocumentsCard
               projectId={projectId}
               documents={project?.documents || []}
               onOpenUpload={() => setIsUploadModalOpen(true)}
               onDelete={deleteDocument}
-              // Optional: support in-app preview by setting previewDoc
-              // onPreview={(doc) => setPreviewDoc(doc)}
+              onPreview={(doc) => setPreviewDoc(doc)}
+            />
+          </div>
+
+          {/* Sidebar (1/3 width) */}
+          <div className="lg:col-span-1 space-y-8">
+            <ProjectProgress progress={progressPct} completed={completedActs} total={totalActs} />
+            
+            <UpcomingDeadlines
+              activities={project?.activities || []}
+              onToggle={toggleActivityMapped}
+            />
+
+            <EmployeesCard
+              employees={project?.employees || []}
+              onAdd={addEmployee}
+              onRemove={removeEmployee}
             />
           </div>
         </div>
@@ -228,7 +224,7 @@ const ProjectDetails = () => {
       {isCoverModalOpen && (
         <div className="modal modal-open">
           <div className="modal-box">
-            <h3 className="font-bold text-lg">Change cover</h3>
+            <h3 className="font-bold text-lg">Change Cover Photo</h3>
             <div className="py-4">
               <input
                 type="file"
@@ -259,7 +255,7 @@ const ProjectDetails = () => {
         </div>
       )}
 
-      {/* Optional in-app Preview Modal (enable with onPreview prop above) */}
+      {/* In-app Document Preview Modal */}
       {previewDoc && (
         <div className="modal modal-open">
           <div className="modal-box max-w-5xl w-11/12">
