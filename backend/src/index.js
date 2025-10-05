@@ -42,9 +42,12 @@ app.use(express.json({ limit: "2mb" })); // parses JSON bodies
 app.use(cookieParser());
 
 // CORS with credentials
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : [];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://enguinity-9.onrender.com",
+  "http://10.0.2.2:8081",
+  "https://enginuity-alpha-1.onrender.com" 
+];
 app.use(
   cors({
     origin(origin, callback) {
