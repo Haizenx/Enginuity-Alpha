@@ -92,7 +92,7 @@ const AddItemForm = ({ onAddItemSubmitTrigger, isSubmitting, onBulkItemsAdded })
       try {
         const API_BASE_URL = window.location.hostname === 'localhost' 
           ? 'http://localhost:5001/api'
-          : 'https://enguinity-9.onrender.com/api';
+          : 'https://enginuity-alpha.onrender.com/api';
         const res = await fetch(`${API_BASE_URL}/suppliers`);
         const data = await res.json();
         setSuppliers(Array.isArray(data) ? data : []);
