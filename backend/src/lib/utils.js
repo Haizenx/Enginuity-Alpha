@@ -1,73 +1,41 @@
 import jwt from "jsonwebtoken";
 
-/**
- * Signs a JWT and sets it as an HttpOnly cookie on the response.
- * Includes userId, userType (role), and platform claims.
- */
 export const generateToken = (
   userId,
   res,
   userType = "user",
-  platform = "web",
-  opts = {}
+  platform = "web"
 ) => {
-  // Your original configurable options are preserved here
-  const {
-    expiresIn = "15d",
-    cookieName = "token",
-    cookieMaxAgeMs = 15 * 24 * 60 * 60 * 1000, // 15 days
-    sameSite = "Lax", // This is the default for local development
-    path = "/",
-  } = opts;
-
   const payload = { userId, userType, platform };
 
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
+  const token = jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: "15d",
+  });
 
   if (platform === "web") {
-    // --- FINALIZED COOKIE OPTIONS ---
-    // This object intelligently sets the correct options for production vs. development
-    const cookieOptions = {
+    // This is the production-ready cookie configuration
+    res.cookie("token", token, {
+      maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : sameSite,
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
-      maxAge: cookieMaxAgeMs,
-      path,
-    };
-    
-    res.cookie(cookieName, token, cookieOptions);
+    });
   }
 
-  return token; // Return token for mobile use
+  return token;
 };
 
-/**
- * Helper to clear the auth cookie consistently.
- */
-export const clearAuthCookie = (res, opts = {}) => {
-  const { 
-    cookieName = "token", 
-    path = "/",
-    sameSite = "Lax" 
-  } = opts;
-
-  // --- FINALIZED COOKIE OPTIONS ---
+export const clearAuthCookie = (res) => {
   // Ensure the cookie is cleared with the same production settings
-  const cookieOptions = {
+  res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : sameSite,
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
-    path,
-  };
-
-  res.clearCookie(cookieName, cookieOptions);
+  });
 };
 
-/**
- * UI helper used by the frontend server-rendered views only.
- */
 export function formatMessageTime(date) {
   return new Date(date).toLocaleTimeString("en-US", {
     hour: "2-digit",
