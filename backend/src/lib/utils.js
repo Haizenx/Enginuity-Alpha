@@ -13,13 +13,12 @@ export const generateToken = (
   });
 
   if (platform === "web") {
-    // This is the production-ready cookie configuration
     res.cookie("token", token, {
       maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
+      // domain: ... <-- THIS LINE HAS BEEN REMOVED
     });
   }
 
@@ -27,12 +26,11 @@ export const generateToken = (
 };
 
 export const clearAuthCookie = (res) => {
-  // Ensure the cookie is cleared with the same production settings
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-    domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
+    // domain: ... <-- THIS LINE HAS BEEN REMOVED
   });
 };
 
