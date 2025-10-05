@@ -78,8 +78,7 @@ app.use("/api/payrolls", payrollRoutes);
 app.use("/api/pm", projectManagerRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/cloudconvert", cloudConvertRoutes);
-app.use(videoRoutes);
-
+app.use('/api/video', videoRoutes);
 
 
 
