@@ -11,28 +11,32 @@ export const generateToken = (
   platform = "web",
   opts = {}
 ) => {
+  // Your original configurable options are preserved here
   const {
     expiresIn = "15d",
     cookieName = "token",
     cookieMaxAgeMs = 15 * 24 * 60 * 60 * 1000, // 15 days
+    sameSite = "Lax", // This is the default for local development
+    path = "/",
   } = opts;
 
   const payload = { userId, userType, platform };
 
   const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
 
-  // Only set the cookie for the web platform
   if (platform === "web") {
-    // --- UPDATED BLOCK ---
-    // These are the production-grade settings for cross-domain cookies
-    res.cookie(cookieName, token, {
+    // --- FINALIZED COOKIE OPTIONS ---
+    // This object intelligently sets the correct options for production vs. development
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : sameSite,
       domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
       maxAge: cookieMaxAgeMs,
-      path: "/",
-    });
+      path,
+    };
+    
+    res.cookie(cookieName, token, cookieOptions);
   }
 
   return token; // Return token for mobile use
@@ -42,16 +46,23 @@ export const generateToken = (
  * Helper to clear the auth cookie consistently.
  */
 export const clearAuthCookie = (res, opts = {}) => {
-  const { cookieName = "token", path = "/" } = opts;
-  // --- UPDATED BLOCK ---
-  // Ensure the cookie is cleared with the same domain and path settings
-  res.clearCookie(cookieName, {
+  const { 
+    cookieName = "token", 
+    path = "/",
+    sameSite = "Lax" 
+  } = opts;
+
+  // --- FINALIZED COOKIE OPTIONS ---
+  // Ensure the cookie is cleared with the same production settings
+  const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : sameSite,
     domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
     path,
-  });
+  };
+
+  res.clearCookie(cookieName, cookieOptions);
 };
 
 /**
