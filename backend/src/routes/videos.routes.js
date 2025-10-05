@@ -15,14 +15,22 @@ const assertCreds = () => {
   }
 };
 
-// Deterministic channel helper (optional)
-router.post('/api/video/agora/channel', (req, res) => {
+// ---------------------------------------------------------------------------
+// 📺 Generate deterministic channel name for 1-to-1 calls
+// Example request:
+// POST /api/video/agora/channel
+// Body: { "userA": "alice", "userB": "bob" }
+// ---------------------------------------------------------------------------
+router.post('/agora/channel', (req, res) => {
   try {
     const { userA, userB } = req.body || {};
-    if (!userA || !userB) return res.status(400).json({ error: 'userA and userB required' });
+    if (!userA || !userB)
+      return res.status(400).json({ error: 'userA and userB required' });
+
     const id1 = String(userA).slice(0, 8);
     const id2 = String(userB).slice(0, 8);
     const channel = `call_${[id1, id2].sort().join('_')}`;
+
     return res.json({ channel });
   } catch (e) {
     console.error('Channel error:', e);
@@ -30,15 +38,25 @@ router.post('/api/video/agora/channel', (req, res) => {
   }
 });
 
-// Issue RTC token for given channel + numeric uid
-router.post('/api/video/agora/token', (req, res) => {
+// ---------------------------------------------------------------------------
+// 🎟️ Issue Agora RTC token for a given channel and uid
+// Example request:
+// POST /api/video/agora/token
+// Body: { "channel": "call_alice_bob", "uid": 12345 }
+// ---------------------------------------------------------------------------
+router.post('/agora/token', (req, res) => {
   try {
     assertCreds();
-    const { channel, uid, role = 'publisher', expireSeconds = 3600 } = req.body || {};
-    if (!channel) return res.status(400).json({ error: 'channel is required' });
-    if (!Number.isInteger(uid)) return res.status(400).json({ error: 'numeric uid is required' });
 
-    const agoraRole = role === 'audience' ? RtcRole.SUBSCRIBER : RtcRole.PUBLISHER;
+    const { channel, uid, role = 'publisher', expireSeconds = 3600 } = req.body || {};
+    if (!channel)
+      return res.status(400).json({ error: 'channel is required' });
+    if (!Number.isInteger(uid))
+      return res.status(400).json({ error: 'numeric uid is required' });
+
+    const agoraRole =
+      role === 'audience' ? RtcRole.SUBSCRIBER : RtcRole.PUBLISHER;
+
     const now = Math.floor(Date.now() / 1000);
     const privilegeExpireTs = now + (Number(expireSeconds) || 3600);
 
@@ -51,7 +69,7 @@ router.post('/api/video/agora/token', (req, res) => {
       privilegeExpireTs
     );
 
-    console.log('ISSUED', {
+    console.log('🎫 ISSUED TOKEN', {
       appId: AGORA_APP_ID.slice(0, 6),
       channel,
       uid,
