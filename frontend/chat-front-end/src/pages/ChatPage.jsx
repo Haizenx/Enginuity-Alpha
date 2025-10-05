@@ -9,8 +9,8 @@ import { useAuthContext } from "../context/AuthContext";
 import io from "socket.io-client";
 
 // This API URL setup is correct.
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5001";
-const SOCKET_URL = import.meta.env.DEV ? "http://localhost:5001" : import.meta.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
+const SOCKET_URL = import.meta.env.DEV ? "http://localhost:5001" : import.meta.env.VITE_BACKEND_URL;
 
 const ChatPage = () => {
   const [users, setUsers] = useState([]);
