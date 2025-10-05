@@ -39,7 +39,7 @@ const QuotationPage = () => {
 
   const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5001/api'
-    : 'https://enguinity-9.onrender.com/api';
+    : 'https://enginuity-alpha.onrender.com/api';
 
   const currentSupplier = useMemo(() => {
     return suppliers.find(s => s._id === selectedSupplierId);
