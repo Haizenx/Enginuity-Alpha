@@ -419,8 +419,10 @@ ${lines.join('\n')}\n`;
             **BUDGET ESTIMATE:**
             IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Provide a **realistic cost estimate**. 
             **CRITICAL CONSTRAINT:** If the total area/scope is unknown, **assume a common scope, such as a 10 SQ.M. standard ceiling (3m x 3.33m) or a 50 SQ.M. floor area, and calculate quantities accurately for that assumed scope.** Use Philippines construction benchmarks (e.g., ₱20,000 to ₱30,000 per sq.m. for standard build) to guide overall pricing and ensure Unit Prices are realistic.
-            The table columns MUST be: **| Item | Quantity (e.g., 12.00 pcs) | Unit | Unit Price (PHP) | Subtotal (PHP) |**
-            Include a FINAL ROW for the Grand Total Cost.
+            Include a FINAL ROW for the Grand Total Cost which just give the total cost of the estimated budget.
+            The table columns MUST be: **| Item | Quantity (e.g., 12.00 pcs) | Unit | Unit Price (PHP) | Subtotal (PHP) |**
+            Include a FINAL ROW for the Grand Total Cost which just give the total cost of the estimated budget.
+    
 
             ${textPrompt.trim() ? `Also consider this specific user request: "${textPrompt.trim()}".` : ''} ${additionalContextForAI} ${supplierCatalogContext}
 
