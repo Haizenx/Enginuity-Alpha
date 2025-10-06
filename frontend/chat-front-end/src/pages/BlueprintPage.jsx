@@ -402,7 +402,7 @@ ${lines.join('\n')}\n`;
              - Check for potential measurement errors
              - Identify key structural elements
              - Note any design considerations
-             - Analyze it thoroughly 
+             
              ${costConstraint}
 
             **MATERIALS & RECOMMENDATIONS:**
