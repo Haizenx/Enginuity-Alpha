@@ -73,7 +73,7 @@ const SideBarMain = () => {
       { key: "dashboard", icon: <LayoutDashboard size={20} />, label: "Dashboard", path: "/dashboard" },
       { key: "chats", icon: <MessageSquareText size={20} />, label: "Chats", path: "/chats", badge: unreadCount },
       { key: "projects", icon: <ListChecks size={20} />, label: "Projects", path: "/projects" },
-      { key: "blueprint", icon: <Folders size={20} />, label: "Blueprint Recommendation", path: "/blueprint" },
+      { key: "blueprint", icon: <Folders size={20} />, label: "AI Assistant", path: "/blueprint" },
       { key: "quotation", icon: <File size={20} />, label: "Quotation", path: "/quotation" },
 
       // Super Admin-only item
