@@ -719,15 +719,7 @@ const QuotationForm = ({ items, projectDetails: initialProjectDetails, onBulkIte
         })}
           className="btn btn-outline btn-sm mb-3 sm:mb-0 sm:mr-3 w-full sm:w-auto"
         > Clear Quantities & Search </button>
-        <button type="button" onClick={() => openConfirm(handleCompareSuppliers, {
-          title: 'Compare Suppliers',
-          message: `Compare totals across all ${suppliers.length} suppliers for the selected items? A supplier's total will be lower if they cannot provide a price for all selected items.`,
-          confirmText: 'Compare',
-          cancelText: 'Cancel',
-        })}
-          disabled={compareLoading || selectedItemsPayload.length === 0}
-          className="btn btn-info btn-md mb-3 sm:mb-0 sm:mr-3 w-full sm:w-auto"
-        > {compareLoading ? "Comparing..." : "Compare Suppliers"} </button>
+        
         <button type="button" onClick={handleGeneratePDFClick}
           disabled={!selectedSupplierId || !hasAnyQuantity || itemsMissingPrice.length > 0}
           className="btn btn-success btn-md w-full sm:w-auto"
