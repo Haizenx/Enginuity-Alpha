@@ -390,31 +390,34 @@ ${lines.join('\n')}\n`;
 
               
 
-            const fullPrompt = `Your task is to analyze the provided image and provide a structured response, focusing on the **Philippine construction context** (using PHP, local costs/practices). First, determine if the image is a construction blueprint, architectural drawing, or floor plan. 
+            const fullPrompt = `Your task is to analyze the provided image and provide a structured response, focusing on the **Philippine construction context** (using PHP, local costs/practices). First, determine if the image is a construction blueprint, architectural drawing, or floor plan. If its not a blueprint/quotation or not construction related dont produce the other sections
 
              Please structure your response with clear section headers as follows:
 
              **DESCRIPTION:**
-             Provide a clear description of what the image shows and what it's all about.
+             Provide a clear description of what the image shows and what it's all about. Explain also thoroughly 
 
              **ANALYSIS:**
              If it's a blueprint or drawing, perform a detailed analysis including:
              - Check for potential measurement errors
              - Identify key structural elements
              - Note any design considerations
+             - Analyze it thoroughly 
              ${costConstraint}
 
             **MATERIALS & RECOMMENDATIONS:**
             Recommended sustainable materials and construction approaches, using **Philippine market context**.
             - Format each material on a separate line with a hyphen (e.g., "- Material Name – Chosen Supplier: SUPPLIER_NAME (Reason: WHY) – brief justification").
+            - You can also suggest something that was not available on the database but you recommended to use like sustainable items that are the standard
 
             **SUPPLIER COMPARISON:**
-            IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Compare available suppliers from the Supplier Catalog for 3-5 key recommended materials. Include an overall total row.
+            IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Compare available suppliers from the Supplier Catalog for key recommended materials. Include an overall total row.
+            You can suggest something that isnt on the supplier items but provide the estimated price of it 
             The table columns MUST be: **| Material | Supplier | Unit Price (PHP) | Pros/Cons (e.g., local, cheaper) |**
             End the table with a row showing the **OVERALL ESTIMATED SUBTOTAL** for each supplier (e.g., | OVERALL SUBTOTAL | Supplier A PHP Value | Supplier B PHP Value | BEST OPTION |). Do NOT mix suppliers in the final recommendation; this section is only for comparison.
 
             **BUDGET ESTIMATE:**
-            IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Provide a **realistic cost estimate**.
+            IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Provide a **realistic cost estimate**. 
             **CRITICAL CONSTRAINT:** If the total area/scope is unknown, **assume a common scope, such as a 10 SQ.M. standard ceiling (3m x 3.33m) or a 50 SQ.M. floor area, and calculate quantities accurately for that assumed scope.** Use Philippines construction benchmarks (e.g., ₱20,000 to ₱30,000 per sq.m. for standard build) to guide overall pricing and ensure Unit Prices are realistic.
             The table columns MUST be: **| Item | Quantity (e.g., 12.00 pcs) | Unit | Unit Price (PHP) | Subtotal (PHP) |**
             Include a FINAL ROW for the Grand Total Cost.
@@ -422,7 +425,7 @@ ${lines.join('\n')}\n`;
             ${textPrompt.trim() ? `Also consider this specific user request: "${textPrompt.trim()}".` : ''} ${additionalContextForAI} ${supplierCatalogContext}
 
             **CONCLUSION:**
-            Choose EXACTLY ONE supplier as the final recommendation for this project and state WHY (e.g., best total cost, sustainability, logistics). Do NOT recommend mixing suppliers. Keep it to 2-4 sentences.`; 
+            Choose EXACTLY ONE supplier as the final recommendation for this project and state WHY (e.g., best total cost, sustainability, logistics). Do NOT recommend mixing suppliers. Tell also some details about the project Keep it to 5 sentences. Also if the user has a specific question answer it first before the conclusion sentence`; 
 
 
 
