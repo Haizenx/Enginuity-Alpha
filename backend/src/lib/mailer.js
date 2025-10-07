@@ -9,14 +9,6 @@ const {
   MAIL_FROM,
 } = process.env;
 
-/*
-console.log("SMTP debug:", {
-  host: SMTP_HOST,
-  port: SMTP_PORT,
-  user: SMTP_USER,
-  from: MAIL_FROM,
-});
-*/
 let transporter;
 
 /**
@@ -43,7 +35,7 @@ export function getMailer() {
 
   transporter = nodemailer.createTransport({
     host: SMTP_HOST,
-    port: Number(SMTP_PORT),           // 587 for STARTTLS, 465 for SSL
+    port: Number(SMTP_PORT),        // 587 for STARTTLS, 465 for SSL
     secure: Number(SMTP_PORT) === 465, // true for 465, false for 587
     auth: {
       user: SMTP_USER,
@@ -104,6 +96,7 @@ export async function sendMail({ to, subject, html, text }) {
  */
 export async function sendWelcomeCredentials({ to, fullName, username, tempPassword, role }) {
   const subject = "Your Enginuity account credentials";
+  
   const html = `
     <div style="font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;max-width:600px">
       <h2 style="margin:0 0 8px;color:#1976d2">Welcome to Enginuity</h2>
@@ -126,9 +119,28 @@ export async function sendWelcomeCredentials({ to, fullName, username, tempPassw
         </p>
       </div>
       
-      <p style="margin:16px 0 8px;font-size:14px;color:#666">
-        ${role === "client" ? "Use the Enginuity mobile app to sign in." : "Sign in at the Enginuity web portal."}
-      </p>
+      ${role === "client" ? 
+        `<div>
+            <p style="margin:16px 0 8px;font-size:14px;color:#424242">
+                <strong>Download the Enginuity Mobile App:</strong>
+            </p>
+            <a href="https://drive.google.com/drive/folders/1TnX8mwWjJi46ruTzza7Bquigx2Fy5ysy?fbclid=IwY2xjawNR7ydleHRuA2FlbQIxMQABHvcleW-h5Ur2Y_k330lZmehml6ni9nQQzqEAkWDGghJrc_ERHrwGcrtufjj0_aem_SP_d33z5gg0_ScnwHAqpLQ" style="display:inline-block;padding:10px 16px;background-color:#1976d2;color:#ffffff;text-decoration:none;border-radius:4px;font-size:14px;font-weight:600;">
+                Download APK from Google Drive
+            </a>
+            <div style="margin:16px 0 8px;font-size:13px;color:#666">
+                <p><strong>Installation Instructions:</strong></p>
+                <ol style="padding-left: 20px; margin: 0;">
+                    <li>Click the link to download the file. You may see a security warning; this is normal.</li>
+                    <li>Open the downloaded file to begin installation.</li>
+                    <li>Your phone will ask for permission to "install unknown apps". You must enable this to proceed.</li>
+                </ol>
+            </div>
+        </div>`
+        :
+        `<p style="margin:16px 0 8px;font-size:14px;color:#666">
+            Sign in at the Enginuity web portal.
+        </p>`
+      }
       
       <p style="margin:16px 0;font-size:13px;color:#999;border-top:1px solid #eee;padding-top:12px">
         This email was sent to: ${to}
@@ -139,14 +151,19 @@ export async function sendWelcomeCredentials({ to, fullName, username, tempPassw
   const text = `
 Welcome to Enginuity
 
-Hello ${fullName || "there"}, your ${role === "project_manager" ? "Project Manager" : role === "client" ? "Client" : "user"} account has been created.
+Hello ${fullName || "there"}, your Client account has been created.
+
+Please install our private company app using the secure link below.
+
+Download Link: https://drive.google.com/drive/folders/1TnX8mwWjJi46ruTzza7Bquigx2Fy5ysy?fbclid=IwY2xjawNR7ydleHRuA2FlbQIxMQABHvcleW-h5Ur2Y_k330lZmehml6ni9nQQzqEAkWDGghJrc_ERHrwGcrtufjj0_aem_SP_d33z5gg0_ScnwHAqpLQ
+
+**Installation Instructions:**
+1.  Click the link above to download the file. You may see a warning that Google can't scan the file for viruses; this is normal for this type of file.
+2.  Once downloaded, open the file to begin installation.
+3.  Your phone will ask you to allow installation from unknown sources. You must enable this setting to install the app.
 
 Username: ${username}
 Temporary Password: ${tempPassword}
-
-IMPORTANT: Please sign in using your USERNAME (not your email address) and change your password immediately for security.
-
-${role === "client" ? "Use the Enginuity mobile app to sign in." : "Sign in at the Enginuity web portal."}
 
 This email was sent to: ${to}
   `;
