@@ -563,7 +563,7 @@ export default function SuperAdminDashboard() {
                   required
                 />
               </div>
-              </div>
+          
 
               <div className="modal-action">
                 <button type="button" className="btn btn-ghost" onClick={closeClientModal} disabled={isSubmitting}>Cancel</button>
