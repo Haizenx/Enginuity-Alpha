@@ -161,15 +161,7 @@ const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) =>
                     >
                       <Download className="h-3 w-3" />
                     </a>
-                    <a
-                      href={viewHref}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn btn-ghost btn-xs"
-                      title="View"
-                    >
-                      <Eye className="h-3 w-3" />
-                    </a>
+                    
                     <button
                       onClick={() => handleDelete(doc)}
                       className="btn btn-ghost btn-xs text-error hover:bg-error/10"
