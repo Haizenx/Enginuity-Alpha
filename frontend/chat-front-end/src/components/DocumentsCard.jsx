@@ -2,7 +2,7 @@ import React from "react";
 import { FileText, Trash2, Eye, File, Upload, Download } from "lucide-react";
 import toast from "react-hot-toast";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE = import.meta.env.VITE_BACKEND_URL || "";
 
 const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) => {
   const formatFileSize = (bytes) => {
