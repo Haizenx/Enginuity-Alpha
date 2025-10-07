@@ -60,15 +60,12 @@ router.get("/:projectId/documents/:docId/view", protectRoute, async (req, res) =
     const doc = project.documents?.find((d) => d._id.toString() === docId);
     if (!doc) return res.status(404).json({ message: "Document not found" });
 
-    const name = doc.name || doc.url;
-    const ext = (name.split(".").pop() || "").toLowerCase();
-    const office = ["doc", "docx", "xls", "xlsx", "ppt", "pptx"];
-
-    if (office.includes(ext)) {
-      const viewer = `https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(doc.url)}`;
-      return res.redirect(viewer);
-    }
-    return res.redirect(doc.url);
+    const response = await axios.get(doc.url, { responseType: "arraybuffer" });
+    
+    // Set the disposition to 'inline' to suggest viewing instead of downloading.
+    res.setHeader("Content-Disposition", `inline; filename="${doc.name || "document"}"`);
+    res.setHeader("Content-Type", response.headers["content-type"] || "application/octet-stream");
+    return res.send(response.data);
   } catch (err) {
     console.error("Error viewing document:", err);
     return res.status(500).json({ message: "Internal Server Error" });
