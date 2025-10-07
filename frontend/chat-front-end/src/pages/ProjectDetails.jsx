@@ -24,9 +24,6 @@ const ProjectDetails = () => {
   const [coverFile, setCoverFile] = useState(null);
   const [uploadingCover, setUploadingCover] = useState(false);
 
-  // ⛔️ REMOVED: The state for the old preview modal is no longer needed.
-  // const [previewDoc, setPreviewDoc] = useState(null);
-
   const { addActivity, toggleActivity, deleteActivity } = useActivities(projectId, fetchProject);
   const { uploadDocument, deleteDocument } = useDocuments(projectId, fetchProject);
 
