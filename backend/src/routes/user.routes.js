@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { sendWelcomeCredentials } from "../lib/mailer.js";
 import { uploadAvatar } from "../middleware/upload.js";
+import { deleteUser } from "../controllers/user.controller.js"; 
 
 const router = express.Router();
 
@@ -440,22 +441,6 @@ router.put("/:id", protectRoute, async (req, res) => {
 });
 
 // Delete user (Admin only)
-router.delete("/:id", protectRoute, async (req, res) => {
-  try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    return res.json({ message: "User deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
-});
+router.delete("/:id", protectRoute, deleteUser);
 
 export default router;
