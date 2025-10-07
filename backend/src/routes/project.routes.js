@@ -60,12 +60,8 @@ router.get("/:projectId/documents/:docId/view", protectRoute, async (req, res) =
     const doc = project.documents?.find((d) => d._id.toString() === docId);
     if (!doc) return res.status(404).json({ message: "Document not found" });
 
-    const response = await axios.get(doc.url, { responseType: "arraybuffer" });
-    
-    // Set the disposition to 'inline' to suggest viewing instead of downloading.
-    res.setHeader("Content-Disposition", `inline; filename="${doc.name || "document"}"`);
-    res.setHeader("Content-Type", response.headers["content-type"] || "application/octet-stream");
-    return res.send(response.data);
+    // Simply redirect the browser to the document's original URL.
+    return res.redirect(doc.url);
   } catch (err) {
     console.error("Error viewing document:", err);
     return res.status(500).json({ message: "Internal Server Error" });
