@@ -1,5 +1,4 @@
-// pages/SuperAdminManageAccPage.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axiosInstance from "../lib/axios";
 import { useAuthStore } from "../store/useAuthStore";
 import {
@@ -13,6 +12,7 @@ import {
   X,
   Lock,
   Unlock,
+  Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -290,13 +290,25 @@ const SuperAdminManageAccPage = () => {
 
   const deactivate = async (user) => {
     try {
-      const { data } = await axiosInstance.patch(`/admin/users/${user._id}/status`, {
+      const { data } = await axiosInstance.patch(`/users/${user._id}/status`, {
         isActive: !user.isActive,
       });
       toast.success(data?.isActive ? "User reactivated" : "User deactivated");
       fetchUsers();
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to update status");
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (window.confirm(`Are you sure you want to permanently delete ${user.fullName}? This action cannot be undone.`)) {
+      try {
+        await axiosInstance.delete(`/users/${user._id}`);
+        toast.success("User deleted successfully.");
+        fetchUsers();
+      } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to delete user.");
+      }
     }
   };
 
@@ -427,7 +439,13 @@ const SuperAdminManageAccPage = () => {
                           >
                             {u.isActive ? <Lock size={14} /> : <Unlock size={14} />}
                           </button>
-                          {/* Future: open a reset modal directly from users table */}
+                          <button
+                            className="btn btn-xs btn-error join-item"
+                            onClick={() => handleDeleteUser(u)}
+                            title="Delete User Permanently"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       </td>
                     </tr>
