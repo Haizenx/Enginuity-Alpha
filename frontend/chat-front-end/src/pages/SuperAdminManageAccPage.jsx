@@ -362,10 +362,7 @@ const SuperAdminManageAccPage = () => {
               <RefreshCw size={16} />
               Refresh
             </button>
-            <button className="btn btn-primary btn-sm" onClick={() => setCreateOpen(true)}>
-              <Plus size={16} />
-              New user
-            </button>
+            
           </SectionHeader>
 
           <Toolbar>
