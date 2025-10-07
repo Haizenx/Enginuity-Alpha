@@ -1,4 +1,3 @@
-// src/pages/ProjectDetails.jsx
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -25,8 +24,8 @@ const ProjectDetails = () => {
   const [coverFile, setCoverFile] = useState(null);
   const [uploadingCover, setUploadingCover] = useState(false);
 
-  // Optional quick preview modal state
-  const [previewDoc, setPreviewDoc] = useState(null);
+  // ⛔️ REMOVED: The state for the old preview modal is no longer needed.
+  // const [previewDoc, setPreviewDoc] = useState(null);
 
   const { addActivity, toggleActivity, deleteActivity } = useActivities(projectId, fetchProject);
   const { uploadDocument, deleteDocument } = useDocuments(projectId, fetchProject);
@@ -167,12 +166,8 @@ const ProjectDetails = () => {
         onOpenCoverUpload={() => setIsCoverModalOpen(true)}
       />
 
-      {/* REVISED LAYOUT CONTAINER */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Main Content Grid: Switched to 3 columns for a cleaner 2/3 + 1/3 split */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Main Content Area (2/3 width) */}
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-white rounded-lg shadow-sm p-5">
               <h2 className="text-xl font-bold text-gray-900 mb-2">Project Overview</h2>
@@ -185,16 +180,15 @@ const ProjectDetails = () => {
               onDelete={deleteActivity}
             />
 
+            {/* ✨ UPDATED: The onPreview prop is removed */}
             <DocumentsCard
               projectId={projectId}
               documents={project?.documents || []}
               onOpenUpload={() => setIsUploadModalOpen(true)}
               onDelete={deleteDocument}
-              onPreview={(doc) => setPreviewDoc(doc)}
             />
           </div>
 
-          {/* Sidebar (1/3 width) */}
           <div className="lg:col-span-1 space-y-8">
             <ProjectProgress progress={progressPct} completed={completedActs} total={totalActs} />
             
@@ -212,7 +206,6 @@ const ProjectDetails = () => {
         </div>
       </div>
 
-      {/* Document Upload Modal */}
       <UploadDocumentModal
         open={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
@@ -220,7 +213,6 @@ const ProjectDetails = () => {
         maxSizeMB={25}
       />
 
-      {/* Cover Photo Modal */}
       {isCoverModalOpen && (
         <div className="modal modal-open">
           <div className="modal-box">
@@ -249,39 +241,6 @@ const ProjectDetails = () => {
                 onClick={uploadCover}
               >
                 {uploadingCover ? "Uploading..." : "Save"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* In-app Document Preview Modal */}
-      {previewDoc && (
-        <div className="modal modal-open">
-          <div className="modal-box max-w-5xl w-11/12">
-            <h3 className="font-bold text-lg mb-3">{previewDoc.name || "Preview"}</h3>
-            <div className="h-[70vh]">
-              <iframe
-                title="Document preview"
-                src={
-                  /\.(doc|docx|xls|xlsx|ppt|pptx)$/i.test(previewDoc.name || previewDoc.url)
-                    ? `https://docs.google.com/viewer?embedded=true&url=${encodeURIComponent(previewDoc.url)}`
-                    : previewDoc.url
-                }
-                className="w-full h-full rounded-md border"
-              />
-            </div>
-            <div className="modal-action">
-              <a
-                href={`/api/projects/${projectId}/documents/${previewDoc._id || previewDoc.id}/view`}
-                target="_blank"
-                rel="noreferrer"
-                className="btn btn-secondary btn-sm"
-              >
-                Open in new tab
-              </a>
-              <button className="btn btn-ghost btn-sm" onClick={() => setPreviewDoc(null)}>
-                Close
               </button>
             </div>
           </div>
