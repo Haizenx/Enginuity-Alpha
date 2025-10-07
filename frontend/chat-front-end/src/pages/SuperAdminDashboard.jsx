@@ -136,10 +136,6 @@ export default function SuperAdminDashboard() {
     if (!clientName.trim()) return toast.error("Client name is required");
     if (!email.trim()) return toast.error("Client email is required");                 // NEW
     if (!contactNumber.trim()) return toast.error("Contact number is required");
-    if (!location.trim()) return toast.error("Construction location is required");
-    if (!description.trim()) return toast.error("Description is required");
-    if (!startDate) return toast.error("Start date is required");
-    if (!endDate) return toast.error("End date is required");
     if (new Date(startDate) > new Date(endDate)) return toast.error("Start date cannot be after end date");
 
     setIsSubmitting(true);
@@ -567,52 +563,6 @@ export default function SuperAdminDashboard() {
                   required
                 />
               </div>
-
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Construction Location</span></label>
-                <input
-                  type="text"
-                  className="input input-bordered w-full"
-                  placeholder="Enter construction location"
-                  value={clientForm.location}
-                  onChange={(e) => setClientForm({ ...clientForm, location: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Construction Description / Details</span></label>
-                <textarea
-                  className="textarea textarea-bordered w-full"
-                  placeholder="Describe the construction project"
-                  rows="4"
-                  value={clientForm.description}
-                  onChange={(e) => setClientForm({ ...clientForm, description: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="form-control">
-                  <label className="label"><span className="label-text font-medium">Start Date</span></label>
-                  <input
-                    type="date"
-                    className="input input-bordered w-full"
-                    value={clientForm.startDate}
-                    onChange={(e) => setClientForm({ ...clientForm, startDate: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="form-control">
-                  <label className="label"><span className="label-text font-medium">End Date</span></label>
-                  <input
-                    type="date"
-                    className="input input-bordered w-full"
-                    value={clientForm.endDate}
-                    onChange={(e) => setClientForm({ ...clientForm, endDate: e.target.value })}
-                    required
-                  />
-                </div>
               </div>
 
               <div className="modal-action">
