@@ -187,12 +187,29 @@ export const updateUserAvatar = async (req, res) => {
  */
 export const deleteUser = async (req, res) => {
   try {
-    const deleted = await User.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "User not found" });
+    // This check is now inside the controller
+    const allowedRoles = ['admin', 'superadmin'];
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ message: "Forbidden: You do not have permission to delete users." });
+    }
 
+    // Get the user ID from the URL parameters
+    const { id } = req.params;
+
+    // Find the user by their ID and delete them
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    // If no user was found with that ID, return a 404 error
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Send a success response
     res.status(200).json({ message: "User deleted successfully" });
+
   } catch (error) {
     console.error("Error deleting user:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server error while deleting user" });
   }
 };
+
