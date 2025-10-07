@@ -61,10 +61,13 @@ router.get("/:projectId/documents/:docId/view", protectRoute, async (req, res) =
     if (!doc) return res.status(404).json({ message: "Document not found" });
 
     const response = await axios.get(doc.url, { responseType: "arraybuffer" });
-
-    // Set the correct Content-Type to tell the browser how to display the file.
+    
+    // INSTRUCTION 1: Tell the browser what kind of file this is.
     res.setHeader("Content-Type", response.headers["content-type"]);
     
+    // INSTRUCTION 2: Explicitly tell the browser to display this file, not download it.
+    res.setHeader("Content-Disposition", `inline; filename="${doc.name || 'file'}"`);
+
     return res.send(response.data);
   } catch (err) {
     console.error("Error viewing document:", err);
