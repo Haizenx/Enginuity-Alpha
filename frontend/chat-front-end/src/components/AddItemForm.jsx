@@ -244,16 +244,6 @@ const AddItemForm = ({ onAddItemSubmitTrigger, isSubmitting, onBulkItemsAdded })
           <label htmlFor="add-item-unit" className="label-text">Unit</label>
           <input type="text" id="add-item-unit" name="unit" value={item.unit} onChange={handleChange} required className="input input-bordered w-full" />
         </div>
-
-        <div>
-          <label htmlFor="add-item-materialCost" className="label-text">Material Cost (Default)</label>
-          <input type="number" id="add-item-materialCost" name="materialCost" value={item.materialCost} onChange={handleChange} step="0.01" min="0" placeholder="0.00" className="input input-bordered w-full" />
-        </div>
-
-        <div>
-          <label htmlFor="add-item-laborCost" className="label-text">Labor Cost (Default)</label>
-          <input type="number" id="add-item-laborCost" name="laborCost" value={item.laborCost} onChange={handleChange} step="0.01" min="0" placeholder="0.00" className="input input-bordered w-full" />
-        </div>
       </div>
 
       <button
