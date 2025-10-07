@@ -1,8 +1,8 @@
 import React from "react";
-import { FileText, Trash2, Eye, File, Upload } from "lucide-react";
+import { FileText, Trash2, Eye, File, Upload, Download } from "lucide-react";
 import toast from "react-hot-toast";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || ""; // e.g., http://localhost:5001 in dev
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
 
 const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) => {
   const formatFileSize = (bytes) => {
@@ -103,7 +103,6 @@ const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) =>
   return (
     <div className="card bg-base-100 shadow-md">
       <div className="card-body">
-        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-base-content">Project Documents</h3>
           <button
@@ -116,14 +115,11 @@ const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) =>
           </button>
         </div>
 
-        {/* Documents List */}
         <div className="space-y-3">
           {documents.length === 0 ? (
             <div className="text-center py-8 text-base-content/60">
               <FileText className="mx-auto h-12 w-12 mb-3 opacity-30" />
               <p className="text-sm mb-2">No documents uploaded yet.</p>
-
-              {/* Compact Upload Area for empty state */}
               <button
                 onClick={onOpenUpload}
                 className="mt-4 w-full p-4 border-2 border-dashed border-base-content/20 rounded-lg hover:border-base-content/40 transition-colors"
@@ -145,12 +141,8 @@ const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) =>
                   key={id}
                   className="flex items-start gap-3 p-3 border border-base-content/20 rounded-lg hover:bg-base-200/50 transition-colors"
                 >
-                  {/* File Icon */}
-                  <div className="flex-shrink-0 mt-0.5">
-                    {getFileIcon(displayName)}
-                  </div>
+                  <div className="flex-shrink-0 mt-0.5">{getFileIcon(displayName)}</div>
 
-                  {/* File Info */}
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm text-base-content truncate">
                       {displayName}
@@ -161,8 +153,14 @@ const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) =>
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col sm:flex-row gap-1">
+                    <a
+                      href={downloadHref}
+                      className="btn btn-ghost btn-xs"
+                      title="Download"
+                    >
+                      <Download className="h-3 w-3" />
+                    </a>
                     <a
                       href={viewHref}
                       target="_blank"
@@ -171,10 +169,6 @@ const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) =>
                       title="View"
                     >
                       <Eye className="h-3 w-3" />
-                    </a>
-                    {/* Optional separate download button */}
-                    <a href={downloadHref} className="hidden">
-                      Download
                     </a>
                     <button
                       onClick={() => handleDelete(doc)}
