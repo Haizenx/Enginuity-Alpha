@@ -1,10 +1,9 @@
 services:
-  # This defines only your frontend static site service
-  - type: static
-    name: enginuity-alpha-frontend # A name for your service on Render
-    # Tells Render where your frontend project is located
-    rootDir: frontend/chat-front-end 
-    env: static
+  # This defines your frontend service
+  - type: web # <-- Corrected type based on documentation
+    name: enginuity-alpha-frontend
+    runtime: static # <-- Required for a static site
+    rootDir: frontend/chat-front-end
     buildCommand: "npm run build"
     publishDir: "dist"
     headers:
