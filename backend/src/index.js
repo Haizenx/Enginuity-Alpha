@@ -5,13 +5,13 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import http from "http";
-
+ 
 import { connectDB } from "./lib/db.js";
 import createSuperAdmin from "./lib/createSuperAdmin.js";
 import { initSocketServer } from "./lib/socket.js";
 import helmet from "helmet";
-
-
+ 
+ 
 // Routes
 import authRoutes from "./routes/auth.route.js";
 import adminRoutes from "./routes/admin.routes.js";
@@ -27,33 +27,51 @@ import devRoutes from "./routes/dev.routes.js";
 import supplierRoutes from "./routes/supplier.routes.js";
 import cloudConvertRoutes from "./routes/cloudConvert.routes.js";
 import videoRoutes from "./routes/videos.routes.js";
-
-
-
+ 
+ 
 dotenv.config();
-
+ 
 const PORT = process.env.PORT || 5001;
-
+ 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+ 
 const app = express();
 const server = http.createServer(app);
-
+ 
 // Core middleware
 app.use(express.json({ limit: "2mb" })); // parses JSON bodies
 app.use(cookieParser());
-
+ 
 // ✅ Helmet after CORS
 app.use(
   helmet({
     contentSecurityPolicy: {
       useDefaults: true,
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://enginuity-alpha-1.onrender.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: ["'self'", "data:", "https://enginuity-alpha-1.onrender.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        connectSrc: [
+          "'self'",
+          "https://enginuity-alpha-1.onrender.com",
+          "wss://enginuity-alpha-1.onrender.com",
+        ],
+      },
     },
     crossOriginEmbedderPolicy: false,
   })
 );
-
+ 
+// ✅ Additional security headers for A+ rating
+app.use((req, res, next) => {
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+ 
 // CORS with credentials
 const allowedOrigins = [
   "http://localhost:5173",
@@ -71,13 +89,13 @@ app.use(
     credentials: true, // allow cookies for JWT auth
   })
 );
-
+ 
 // Health check
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
-
+ 
 // Static uploads (for any files you store locally)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
-
+ 
 // API Routes
 app.use("/api/auth", authRoutes);         // login, forgot, self password change
 app.use("/api/admin", adminRoutes);       // reset requests + accounts CRUD
@@ -92,54 +110,53 @@ app.use("/api/pm", projectManagerRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/cloudconvert", cloudConvertRoutes);
 app.use('/api/video', videoRoutes);
-
-
-
-
+ 
+ 
+ 
 // Dev route (remove in production)
 app.use("/api/dev", devRoutes);
-
+ 
 // 404 JSON (place after all routes)
 app.use((req, res, next) => {
   return res.status(404).json({ message: "Not Found" });
 });
-
+ 
 // Global error handler (must be last)
 app.use((err, req, res, next) => {
   // Identify Multer errors explicitly so uploads return 4xx instead of generic 500
   const isMulter = err && err.name === "MulterError";
   const status = err?.status || (isMulter ? 400 : 500);
-
+ 
   // Optional: normalize some common CORS/multipart errors
   // if (err.message?.includes("CORS")) status = 403;
-
+ 
   return res.status(status).json({
     message: isMulter ? `Upload error: ${err.code}` : err.message || "Server error",
     details: process.env.NODE_ENV !== "production" ? err : undefined,
   });
 });
-
+ 
 // Serve frontend in production
 if (process.env.NODE_ENV === "production") {
   const frontendDistPath = path.join(__dirname, "../frontend/chat-front-end/dist");
   app.use(express.static(frontendDistPath));
-
+ 
   // ✅ FIX: Use "/*" instead of "*"
   app.get("/*", (req, res) => {
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
 }
-
-
+ 
+ 
 // Startup
 const startServer = async () => {
   try {
     await connectDB();
     await createSuperAdmin();
     console.log("✅ Superadmin check/creation complete");
-
+ 
     initSocketServer(server, allowedOrigins);
-
+ 
     server.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);
     });
@@ -148,5 +165,5 @@ const startServer = async () => {
     process.exit(1);
   }
 };
-
+ 
 startServer();
