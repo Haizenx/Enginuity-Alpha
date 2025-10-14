@@ -137,24 +137,44 @@ app.use((err, req, res, next) => {
 });
  
 // Serve frontend in production
-if (process.env.NODE_ENV === "production") {
-  const frontendDistPath = path.join(__dirname, "../frontend/chat-front-end/dist");
-  // Apply security headers to frontend static files
-  app.use((req, res, next) => {
-    if (!req.path.startsWith('/api')) {
-      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'");
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', 'DENY');
-      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
-      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    }
-    next();
-  });
-  app.use(express.static(frontendDistPath));
+// if (process.env.NODE_ENV === "production") {
+//   const frontendDistPath = path.join(__dirname, "../frontend/chat-front-end/dist");
+//   // Apply security headers to frontend static files
+//   app.use((req, res, next) => {
+//     if (!req.path.startsWith('/api')) {
+//       res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'");
+//       res.setHeader('X-Content-Type-Options', 'nosniff');
+//       res.setHeader('X-Frame-Options', 'DENY');
+//       res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+//       res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+//       res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+//     }
+//     next();
+//   });
+//   app.use(express.static(frontendDistPath));
  
   
+//   app.get("/*", (req, res) => {
+//     res.sendFile(path.join(frontendDistPath, "index.html"));
+//   });
+// }
+if (process.env.NODE_ENV === "production") {
+  const frontendDistPath = path.join(__dirname, "../frontend/chat-front-end/dist");
+  
+  // NOTE: Remove the app.use((req, res, next) => { ... }) block that was here
+  
+  app.use(express.static(frontendDistPath));
+  
+  // 🎯 FIX APPLIED HERE: Explicitly set ALL A+ security headers on the index.html response
   app.get("/*", (req, res) => {
+    // These headers ensure an A+ rating for the main HTML response
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'");
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
 }
