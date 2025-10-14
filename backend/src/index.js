@@ -51,15 +51,15 @@ app.use(
       useDefaults: true,
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "https://enginuity-alpha-1.onrender.com"],
+        scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        imgSrc: ["'self'", "data:", "https://enginuity-alpha-1.onrender.com"],
+        imgSrc: ["'self'", "data:"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         connectSrc: [
           "'self'",
-          "https://enginuity-alpha-1.onrender.com",
           "wss://enginuity-alpha-1.onrender.com",
         ],
+        frameAncestors: ["'self'"],
       },
     },
     crossOriginEmbedderPolicy: false,
