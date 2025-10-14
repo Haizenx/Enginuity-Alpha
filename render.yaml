@@ -1,19 +1,16 @@
-# This file is located at /frontend/render.yaml
-
 services:
-  - type: static
-    name: chat-frontend # You can name this whatever you like
+  - type: web
+    name: chat-frontend
     env: static
     
-    # ⬇️ This is the crucial line you need to add.
-    # It tells Render to run commands from inside this folder.
+    # Tells Render to look inside the 'chat-front-end' folder from this location
     rootDir: chat-front-end
     
-    # Build commands for a standard Vite/React app
-    buildCommand: 'npm install && npm run build'
-    staticPublishPath: 'dist'
+    # Build and publish commands
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
 
-    # The security headers you need
+    # The security headers configuration
     headers:
       - path: /*
         name: Content-Security-Policy
