@@ -25,6 +25,7 @@ import devRoutes from "./routes/dev.routes.js";
 import supplierRoutes from "./routes/supplier.routes.js";
 import cloudConvertRoutes from "./routes/cloudConvert.routes.js";
 import videoRoutes from "./routes/videos.routes.js";
+import securityMiddleware from "./middleware/security.middleware.js";
 
 
 dotenv.config();
@@ -37,6 +38,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 
+app.use(securityMiddleware);
 // Core middleware
 app.use(express.json({ limit: "2mb" })); // parses JSON bodies
 app.use(cookieParser());
