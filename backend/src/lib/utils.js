@@ -17,8 +17,8 @@ export const generateToken = (
       maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      // Removed: process.env.NODE_ENV === "production" ? "None" : 
-      sameSite: "Lax",
+      // Returned: process.env.NODE_ENV === "production" ? "None" : 
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       // domain: ... <-- THIS LINE HAS BEEN REMOVED
     });
   }
@@ -30,8 +30,8 @@ export const clearAuthCookie = (res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    // Removed: process.env.NODE_ENV === "production" ? "None" : 
-    sameSite: "Lax",
+    // Returned: process.env.NODE_ENV === "production" ? "None" : 
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     // domain: ... <-- THIS LINE HAS BEEN REMOVED
   });
 };
