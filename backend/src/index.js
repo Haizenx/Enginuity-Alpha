@@ -55,6 +55,12 @@ app.use((req, res, next) => {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    // DEBUG LOGGING
+    console.log(`📋 Headers set for: ${req.path}`);
+    console.log('CSP:', res.getHeader('Content-Security-Policy'));
+    console.log('X-Frame-Options:', res.getHeader('X-Frame-Options'));
+    console.log('Permissions-Policy:', res.getHeader('Permissions-Policy'));
+    console.log('Referrer-Policy:', res.getHeader('Referrer-Policy'));
     return originalWriteHead.call(this, statusCode, headers);
   };
   next();
@@ -126,11 +132,13 @@ app.use((err, req, res, next) => {
  
 // Serve frontend in production
 if (process.env.NODE_ENV === "production") {
+  console.log("🌐 Production mode: Serving frontend files");
   const frontendDistPath = path.join(__dirname, "../frontend/chat-front-end/dist");
   app.use(express.static(frontendDistPath));
  
   // ✅ Catch-all route for SPA
   app.get("/*", (req, res) => {
+    console.log(`📄 Serving index.html for: ${req.path}`);
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
 }
