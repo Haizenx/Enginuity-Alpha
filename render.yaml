@@ -1,12 +1,10 @@
 services:
-  # This defines your frontend static site
-  - type: static_site
-    name: enginuity-alpha-frontend # You can name this whatever you like
+  - type: static_site # <-- This is the corrected line
+    name: enginuity-alpha-frontend
     env: static
-    buildCommand: "npm run build"  # IMPORTANT: Use your project's build command (e.g., vite build)
-    publishDir: "dist"           # IMPORTANT: Use your project's output folder (e.g., 'build' for Create React App)
+    buildCommand: "npm run build"
+    publishDir: "dist"
     headers:
-      # This pattern matches all pages on your site
       - path: "/*"
         values:
           - key: Content-Security-Policy
