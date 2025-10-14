@@ -67,6 +67,12 @@ app.use(
  
 // Additional security headers for A+ rating
 app.use((req, res, next) => {
+  // Add missing A+ headers for completeness and consistency
+  res.setHeader('X-Frame-Options', 'DENY'); 
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload'); 
+  res.setHeader('X-Content-Type-Options', 'nosniff'); // Redundant with helmet, but good for explicit clarity
+  
+  // Existing A+ headers:
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   next();
