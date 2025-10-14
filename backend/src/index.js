@@ -134,7 +134,18 @@ app.use((err, req, res, next) => {
 if (process.env.NODE_ENV === "production") {
   console.log("🌐 Production mode: Serving frontend files");
   const frontendDistPath = path.join(__dirname, "../frontend/chat-front-end/dist");
-  app.use(express.static(frontendDistPath));
+  // Serve static files with explicit header setting
+  app.use(express.static(frontendDistPath, {
+    setHeaders: (res, filePath) => {
+      console.log(`🗂️ Serving static file: ${filePath}`);
+      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';");
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    }
+  }));
  
   // ✅ Catch-all route for SPA
   app.get("/*", (req, res) => {
