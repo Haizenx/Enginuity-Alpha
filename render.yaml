@@ -1,19 +1,29 @@
+# This file is located at /frontend/render.yaml
+
 services:
-  # This defines your frontend service
-  - type: web # <-- Corrected type based on documentation
-    name: enginuity-alpha-frontend
-    runtime: static # <-- Required for a static site
-    rootDir: frontend/chat-front-end
-    buildCommand: "npm run build"
-    publishDir: "dist"
+  - type: static
+    name: chat-frontend # You can name this whatever you like
+    env: static
+    
+    # ⬇️ This is the crucial line you need to add.
+    # It tells Render to run commands from inside this folder.
+    rootDir: chat-front-end
+    
+    # Build commands for a standard Vite/React app
+    buildCommand: 'npm install && npm run build'
+    staticPublishPath: 'dist'
+
+    # The security headers you need
     headers:
-      - path: "/*"
-        values:
-          - key: Content-Security-Policy
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
-          - key: X-Frame-Options
-            value: "SAMEORIGIN"
-          - key: Referrer-Policy
-            value: "strict-origin-when-cross-origin"
-          - key: Permissions-Policy
-            value: "camera=(), microphone=(), geolocation=()"
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';"
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Permissions-Policy
+        value: "geolocation=(), microphone=(), camera=()"
