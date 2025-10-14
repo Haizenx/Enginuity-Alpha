@@ -9,7 +9,7 @@ import http from "http";
 import { connectDB } from "./lib/db.js";
 import createSuperAdmin from "./lib/createSuperAdmin.js";
 import { initSocketServer } from "./lib/socket.js";
-import { helmetInstance, generalHelmetConfig, customCspPolicy } from "./middleware/security.middleware.js";
+import { applySecurityMiddleware } from "./middleware/security.middleware.js";
 
 // Routes
 import authRoutes from "./routes/auth.route.js";
@@ -39,8 +39,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const server = http.createServer(app);
 
-app.use(helmetInstance(generalHelmetConfig)); // Apply general settings (removes X-Powered-By)
-app.use(helmetInstance.contentSecurityPolicy(customCspPolicy));
+applySecurityMiddleware(app);
+
 // Core middleware
 app.use(express.json({ limit: "2mb" })); // parses JSON bodies
 app.use(cookieParser());
