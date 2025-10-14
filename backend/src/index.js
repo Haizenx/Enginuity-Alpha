@@ -43,7 +43,7 @@ const server = http.createServer(app);
 app.use(express.json({ limit: "2mb" })); // parses JSON bodies
 app.use(cookieParser());
  
-// ✅ Helmet after CORS
+// ✅ Helmet for API routes
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -65,7 +65,7 @@ app.use(
   })
 );
  
-// ✅ Additional security headers for A+ rating
+// Additional security headers for A+ rating
 app.use((req, res, next) => {
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -97,8 +97,8 @@ app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
  
 // API Routes
-app.use("/api/auth", authRoutes);         // login, forgot, self password change
-app.use("/api/admin", adminRoutes);       // reset requests + accounts CRUD
+app.use("/api/auth", authRoutes);   // login, forgot, self password change
+app.use("/api/admin", adminRoutes);  // reset requests + accounts CRUD
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/projects", projectRoutes);
@@ -139,9 +139,21 @@ app.use((err, req, res, next) => {
 // Serve frontend in production
 if (process.env.NODE_ENV === "production") {
   const frontendDistPath = path.join(__dirname, "../frontend/chat-front-end/dist");
+  // Apply security headers to frontend static files
+  app.use((req, res, next) => {
+    if (!req.path.startsWith('/api')) {
+      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'");
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Frame-Options', 'DENY');
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    }
+    next();
+  });
   app.use(express.static(frontendDistPath));
  
-  // ✅ FIX: Use "/*" instead of "*"
+  
   app.get("/*", (req, res) => {
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
