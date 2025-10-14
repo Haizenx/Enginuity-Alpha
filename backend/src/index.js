@@ -44,24 +44,6 @@ const server = http.createServer(app);
 app.use(express.json({ limit: "2mb" })); // parses JSON bodies
 app.use(cookieParser());
 
-// CORS with credentials
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://enguinity-9.onrender.com",
-  "http://10.0.2.2:8081",
-  "https://enginuity-alpha-1.onrender.com" 
-];
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin) return callback(null, true); // allow server-to-server/local tools
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("CORS: origin not allowed"), false);
-    },
-    credentials: true, // allow cookies for JWT auth
-  })
-);
-
 // ✅ Helmet after CORS
 app.use(
   helmet({
@@ -81,6 +63,24 @@ app.use(
       },
     },
     crossOriginEmbedderPolicy: false,
+  })
+);
+
+// CORS with credentials
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://enguinity-9.onrender.com",
+  "http://10.0.2.2:8081",
+  "https://enginuity-alpha-1.onrender.com" 
+];
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) return callback(null, true); // allow server-to-server/local tools
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error("CORS: origin not allowed"), false);
+    },
+    credentials: true, // allow cookies for JWT auth
   })
 );
 
