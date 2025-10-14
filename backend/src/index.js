@@ -43,19 +43,20 @@ const server = http.createServer(app);
 app.use(express.json({ limit: "2mb" })); // parses JSON bodies
 app.use(cookieParser());
  
-// ✅ UNIVERSAL Security Headers - Applied to ALL requests (API + Frontend)
+// ✅ SECURITY HEADERS MIDDLEWARE - Must be FIRST
 app.use((req, res, next) => {
-  // Content Security Policy - Removed 'unsafe-inline' from script-src for A+
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';"
-  );
-  // Other Security Headers
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
-  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  // Store original writeHead to intercept it
+  const originalWriteHead = res.writeHead;
+  res.writeHead = function(statusCode, headers) {
+    // Force set security headers
+    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';");
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    return originalWriteHead.call(this, statusCode, headers);
+  };
   next();
 });
  
@@ -126,26 +127,10 @@ app.use((err, req, res, next) => {
 // Serve frontend in production
 if (process.env.NODE_ENV === "production") {
   const frontendDistPath = path.join(__dirname, "../frontend/chat-front-end/dist");
-  // Apply headers to static files
-  app.use(express.static(frontendDistPath, {
-    setHeaders: (res, path) => {
-      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';");
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', 'DENY');
-      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
-      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    }
-  }));
+  app.use(express.static(frontendDistPath));
  
-  // ✅ Catch-all route for SPA with headers
+  // ✅ Catch-all route for SPA
   app.get("/*", (req, res) => {
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';");
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
 }
