@@ -64,7 +64,8 @@ const allowedOrigins = [
   "https://enguinity-9.onrender.com",
   "http://10.0.2.2:8081",
   "https://enginuity-alpha-1.onrender.com",
-  "https://enginuity-alpha.vercel.app"
+  "https://enginuity-alpha.vercel.app",
+ "https://enginuity-alpha-fdnz60bo3-haizenxs-projects.vercel.app"
 ];
 app.use(
   cors({
