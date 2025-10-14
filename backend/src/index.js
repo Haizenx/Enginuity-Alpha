@@ -43,30 +43,17 @@ const server = http.createServer(app);
 app.use(express.json({ limit: "2mb" })); // parses JSON bodies
 app.use(cookieParser());
  
-// ✅ Helmet for API routes
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      useDefaults: true,
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "https://enginuity-alpha-1.onrender.com"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        imgSrc: ["'self'", "data:", "https://enginuity-alpha-1.onrender.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        connectSrc: [
-          "'self'",
-          "https://enginuity-alpha-1.onrender.com",
-          "wss://enginuity-alpha-1.onrender.com",
-        ],
-      },
-    },
-    crossOriginEmbedderPolicy: false,
-  })
-);
- 
-// ✅ Additional security headers for A+ rating
+// ✅ UNIVERSAL Security Headers - Applied to ALL requests (API + Frontend)
 app.use((req, res, next) => {
+  // Content Security Policy - Removed 'unsafe-inline' from script-src for A+
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';"
+  );
+  // Other Security Headers
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   next();
@@ -139,21 +126,9 @@ app.use((err, req, res, next) => {
 // Serve frontend in production
 if (process.env.NODE_ENV === "production") {
   const frontendDistPath = path.join(__dirname, "../frontend/chat-front-end/dist");
-  // ✅ Apply security headers to frontend static files
-  app.use((req, res, next) => {
-    if (!req.path.startsWith('/api')) {
-      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'");
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', 'DENY');
-      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-      res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
-      res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    }
-    next();
-  });
   app.use(express.static(frontendDistPath));
  
-  // ✅ FIX: Use "/*" instead of "*"
+  // ✅ Catch-all route for SPA
   app.get("/*", (req, res) => {
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
