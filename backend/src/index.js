@@ -174,12 +174,12 @@ if (process.env.NODE_ENV === "production") {
   // 🎯 FIX APPLIED HERE: Explicitly set ALL A+ security headers on the index.html response
   app.get("/*", (req, res) => {
     // These headers ensure an A+ rating for the main HTML response
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'");
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    // res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'");
+    // res.setHeader('X-Content-Type-Options', 'nosniff');
+    // res.setHeader('X-Frame-Options', 'DENY');
+    // res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    // res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
+    // res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
