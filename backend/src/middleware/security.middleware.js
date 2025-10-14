@@ -1,7 +1,7 @@
 // middleware/security.middleware.js
 // Note: Changed 'require' to 'import' for ES Module compatibility
 
-import helmet from 'helmet'; // <--- CORRECTED LINE
+import helmet from "helmet"; // <--- CORRECTED LINE
 
 // Define your custom Content Security Policy
 const cspPolicy = {
