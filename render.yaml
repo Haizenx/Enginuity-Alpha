@@ -1,0 +1,19 @@
+services:
+  # This defines your frontend static site
+  - type: static_site
+    name: enginuity-alpha-frontend # You can name this whatever you like
+    env: static
+    buildCommand: "npm run build"  # IMPORTANT: Use your project's build command (e.g., vite build)
+    publishDir: "dist"           # IMPORTANT: Use your project's output folder (e.g., 'build' for Create React App)
+    headers:
+      # This pattern matches all pages on your site
+      - path: "/*"
+        values:
+          - key: Content-Security-Policy
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
+          - key: X-Frame-Options
+            value: "SAMEORIGIN"
+          - key: Referrer-Policy
+            value: "strict-origin-when-cross-origin"
+          - key: Permissions-Policy
+            value: "camera=(), microphone=(), geolocation=()"
