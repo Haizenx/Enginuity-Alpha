@@ -49,18 +49,6 @@ app.use(
   helmet({
     contentSecurityPolicy: {
       useDefaults: true,
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        imgSrc: ["'self'", "data:"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        connectSrc: [
-          "'self'",
-          "wss://enginuity-alpha-1.onrender.com",
-        ],
-        frameAncestors: ["'self'"],
-      },
     },
     crossOriginEmbedderPolicy: false,
   })
