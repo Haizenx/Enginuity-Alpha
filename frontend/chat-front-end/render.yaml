@@ -1,0 +1,19 @@
+headers:
+  # This pattern matches all pages and files on your site
+  - path: "/*"
+    values:
+      # Helps prevent Cross-Site Scripting (XSS) attacks
+      - key: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
+
+      # Prevents your site from being embedded in an iframe on other sites (clickjacking)
+      - key: X-Frame-Options
+        value: "SAMEORIGIN"
+
+      # Controls how much URL information is sent when a user clicks a link to another site
+      - key: Referrer-Policy
+        value: "strict-origin-when-cross-origin"
+
+      # Controls access to browser features like the camera or microphone
+      - key: Permissions-Policy
+        value: "camera=(), microphone=(), geolocation=()"
