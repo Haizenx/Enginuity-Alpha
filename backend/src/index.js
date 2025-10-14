@@ -45,24 +45,16 @@ app.use(cookieParser());
  
 // ✅ SECURITY HEADERS MIDDLEWARE - Must be FIRST
 app.use((req, res, next) => {
-  // Store original writeHead to intercept it
-  const originalWriteHead = res.writeHead;
-  res.writeHead = function(statusCode, headers) {
-    // Force set security headers
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';");
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    // DEBUG LOGGING
-    console.log(`📋 Headers set for: ${req.path}`);
-    console.log('CSP:', res.getHeader('Content-Security-Policy'));
-    console.log('X-Frame-Options:', res.getHeader('X-Frame-Options'));
-    console.log('Permissions-Policy:', res.getHeader('Permissions-Policy'));
-    console.log('Referrer-Policy:', res.getHeader('Referrer-Policy'));
-    return originalWriteHead.call(this, statusCode, headers);
-  };
+  // Set headers immediately on every request
+  res.set({
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';",
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+    'Permissions-Policy': 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=())',
+    'Referrer-Policy': 'strict-origin-when-cross-origin'
+  });
+  console.log(`🔒 Security headers applied to: ${req.path}`);
   next();
 });
  
