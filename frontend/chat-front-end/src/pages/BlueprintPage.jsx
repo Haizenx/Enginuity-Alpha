@@ -371,7 +371,7 @@ ${lines.join('\n')}\n`;
 
 
 
-         const apiKey = "AIzaSyDngSNvIBkdTUccWLqDMIB2uElrG8_nROs"; 
+         const apiKey = "AIzaSyCrVxX_6LiNjDSICdrytrnA4-hsNA2skW8"; 
 
          const genAI = new GoogleGenerativeAI(apiKey); 
 
@@ -493,7 +493,7 @@ ${lines.join('\n')}\n`;
 
 
 
-         const apiKey = "AIzaSyDngSNvIBkdTUccWLqDMIB2uElrG8_nROs"; 
+         const apiKey = "AIzaSyCrVxX_6LiNjDSICdrytrnA4-hsNA2skW8"; 
 
          const genAI = new GoogleGenerativeAI(apiKey); 
 
