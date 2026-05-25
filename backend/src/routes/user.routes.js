@@ -65,6 +65,7 @@ router.post("/create-client-auto", protectRoute, async (req, res) => {
 
     const newClient = await User.create({
       email: username, // This is the username they'll use to login
+      recoveryEmail: email, // <-- ADD THIS: Saves the actual Gmail address
       fullName,
       password: tempPassword, // Plain password - pre-save hook will hash it
       contactNumber,
@@ -165,6 +166,7 @@ router.post("/create-pm-auto", protectRoute, async (req, res) => {
 
     const newPM = await User.create({
       email: username, // This is the username they'll use to login
+      recoveryEmail: email, // <-- ADD THIS: Saves the actual Gmail address
       fullName,
       password: tempPassword, // Plain password - pre-save hook will hash it
       contactNumber,

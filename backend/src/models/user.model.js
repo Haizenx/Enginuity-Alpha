@@ -13,6 +13,11 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    recoveryEmail: { // <-- ADD THIS FIELD
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
     fullName: {
       type: String,
       required: true,
@@ -32,6 +37,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["superadmin", "client", "project_manager"],
       default: "client",
+    },
+
+    //for forgot password
+    resetOTP: {
+      type: String,
+      default: null
+    },
+    resetOTPExpires: {
+      type: Date,
+      default: null
     },
 
     permissions: {

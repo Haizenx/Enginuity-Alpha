@@ -55,12 +55,12 @@ export function getMailer() {
 export async function sendMail({ to, subject, html, text }) {
   try {
     const mailer = getMailer();
-    
+
     // Verify transporter before sending
     console.log("Verifying SMTP connection...");
     await mailer.verify();
     console.log("SMTP connection verified");
-    
+
     console.log(`Attempting to send email to: ${to}`);
     const info = await mailer.sendMail({
       from: resolveFrom(),
@@ -69,14 +69,14 @@ export async function sendMail({ to, subject, html, text }) {
       text,
       html,
     });
-    
+
     console.log("Email sent successfully:", {
       messageId: info.messageId,
       accepted: info.accepted,
       rejected: info.rejected,
       response: info.response,
     });
-    
+
     return info;
   } catch (error) {
     console.error("DETAILED EMAIL ERROR:", {
@@ -96,7 +96,7 @@ export async function sendMail({ to, subject, html, text }) {
  */
 export async function sendWelcomeCredentials({ to, fullName, username, tempPassword, role }) {
   const subject = "Your Enginuity account credentials";
-  
+
   const html = `
     <div style="font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;max-width:600px">
       <h2 style="margin:0 0 8px;color:#1976d2">Welcome to Enginuity</h2>
@@ -119,8 +119,8 @@ export async function sendWelcomeCredentials({ to, fullName, username, tempPassw
         </p>
       </div>
       
-      ${role === "client" ? 
-        `<div>
+      ${role === "client" ?
+      `<div>
             <p style="margin:16px 0 8px;font-size:14px;color:#424242">
                 <strong>Download the Enginuity Mobile App:</strong>
             </p>
@@ -136,18 +136,18 @@ export async function sendWelcomeCredentials({ to, fullName, username, tempPassw
                 </ol>
             </div>
         </div>`
-        :
-        `<p style="margin:16px 0 8px;font-size:14px;color:#666">
+      :
+      `<p style="margin:16px 0 8px;font-size:14px;color:#666">
             Sign in at the Enginuity web portal.
         </p>`
-      }
+    }
       
       <p style="margin:16px 0;font-size:13px;color:#999;border-top:1px solid #eee;padding-top:12px">
         This email was sent to: ${to}
       </p>
     </div>
   `;
-  
+
   const text = `
 Welcome to Enginuity
 
@@ -167,7 +167,7 @@ Temporary Password: ${tempPassword}
 
 This email was sent to: ${to}
   `;
-  
+
   return sendMail({ to, subject, html, text });
 }
 
@@ -188,3 +188,32 @@ export async function sendAdminResetNotice({ to, fullName, tempPassword }) {
   `;
   return sendMail({ to, subject, html });
 }
+
+/**
+ * ----------------------------------------------------
+ * ADDED FOR MOBILE: sendOTPEmail
+ * Sends a premium HTML email containing a 6-digit OTP
+ * verification code to reset a user's password.
+ * ----------------------------------------------------
+ */
+export async function sendOTPEmail(to, otp) {
+  const subject = "Verification Code for Password Reset";
+  const html = `
+    <div style="font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;max-width:500px;margin:0 auto;padding:24px;border:1px solid #e0e0e0;border-radius:12px;background-color:#ffffff">
+      <h2 style="margin:0 0 12px;color:#1976d2;text-align:center;font-size:22px;font-weight:700">Reset Your Password</h2>
+      <p style="margin:0 0 20px;font-size:15px;color:#424242;text-align:center">
+        We received a request to reset the password for your account. Please use the verification code below to complete the process. This code is valid for 10 minutes.
+      </p>
+      <div style="background:#f6f8fa;padding:16px 20px;border-radius:8px;margin:16px auto;text-align:center;max-width:200px;border:1px dashed #1976d2">
+        <code style="font-size:32px;font-weight:700;color:#d32f2f;letter-spacing:4px;font-family:Consolas,Monaco,monospace">${otp}</code>
+      </div>
+      <p style="margin:20px 0 0;font-size:13px;color:#757575;text-align:center;border-top:1px solid #eee;padding-top:12px">
+        If you did not request a password reset, please ignore this email. Your password will remain unchanged.
+      </p>
+    </div>
+  `;
+  const text = `Verification Code for Password Reset\n\nHello,\n\nWe received a request to reset the password for your Enginuity account. Please use the verification code (OTP) below to complete the process. This code is valid for 10 minutes.\n\nVerification Code: ${otp}\n\nIf you did not request a password reset, please ignore this email.`;
+
+  return sendMail({ to, subject, html, text });
+}
+

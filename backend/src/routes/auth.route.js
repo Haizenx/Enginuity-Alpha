@@ -8,6 +8,8 @@ import {
   checkAuth,
   updatePassword,
   forgotPassword,
+  forgotPasswordMobile,
+  resetPasswordMobile,
 } from "../controllers/auth.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -17,6 +19,9 @@ const router = express.Router();
 router.post("/signup", signup);
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword); // generic, no-email, queues admin request
+router.post("/forgot-password-mobile", forgotPasswordMobile); // OTP-based, sends email for mobile
+router.post("/reset-password-mobile", resetPasswordMobile);   // OTP-based password reset for mobile
+
 
 // Protected
 router.post("/logout", protectRoute, logout);

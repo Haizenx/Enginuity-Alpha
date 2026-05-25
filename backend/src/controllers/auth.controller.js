@@ -5,6 +5,8 @@ import SuperAdmin from "../models/superAdmin.model.js";
 import AdminResetRequest from "../models/adminResetRequest.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
+import { sendOTPEmail } from "../lib/mailer.js";
+
 
 // ---------------------- SIGNUP (clients / PMs) ----------------------
 export const signup = async (req, res) => {
@@ -91,7 +93,7 @@ export const login = async (req, res) => {
     if (userRole === "client" && platform === "web") {
       return res.status(403).json({ message: "Client accounts can only sign in on mobile." });
     }
-    
+
     if (userRole !== "client" && platform === "mobile") {
       return res.status(403).json({ message: "Only client accounts can sign in on mobile." });
     }
@@ -307,5 +309,136 @@ export const setSuperAdminPassword = async (req, res) => {
   } catch (error) {
     console.error("❌ setSuperAdminPassword error:", error.message);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+// =========================================================================
+// ADDED FOR MOBILE: OTP-based Password Reset flow (with email support)
+// =========================================================================
+
+/**
+ * Helper: Generate a 6-digit numeric verification code (OTP).
+ */
+const generateNumericOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+/**
+ * Endpoint: POST /api/auth/forgot-password-mobile
+ * Generates an OTP, saves it to the User model, and sends an email to the user.
+ */
+export const forgotPasswordMobile = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required.' });
+    }
+
+    // Find the user by their email
+    const user = await User.findOne({ recoveryEmail: email.toLowerCase() });
+
+    if (!user) {
+      // For security reasons, you may want to return a generic success message,
+      // but in an admin-provisioned setup, returning "User not found" is helpful.
+      return res.status(404).json({ success: false, message: 'No account registered with this email.' });
+    }
+
+    // Generate 6-digit OTP code
+    const otp = generateNumericOTP();
+    // Set OTP expiration to 10 minutes from now
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    // Save to User document in MongoDB
+    user.resetOTP = otp;
+    user.resetOTPExpires = otpExpiry;
+    await user.save();
+
+    // Send email with OTP using the Nodemailer service
+    await sendOTPEmail(user.recoveryEmail, otp);
+
+    return res.status(200).json({
+      success: true,
+      message: 'A verification OTP has been sent to your recovery email.'
+    });
+  } catch (error) {
+    console.error('Forgot Password Mobile Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'An internal error occurred while processing your request.'
+    });
+  }
+};
+
+/**
+ * Endpoint: POST /api/auth/reset-password-mobile
+ * Verifies the OTP, sets the new password, and updates it in MongoDB.
+ * Note: password hashing is handled automatically by the pre-save hook in userModel.js.
+ */
+export const resetPasswordMobile = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, verification code (OTP), and new password are required.'
+      });
+    }
+
+    // Retrieve the user with the correct email
+    const user = await User.findOne({ recoveryEmail: email.toLowerCase() });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Check if the OTP is set
+    if (!user.resetOTP) {
+      return res.status(400).json({
+        success: false,
+        message: 'No active password reset request was found for this user.'
+      });
+    }
+
+    // Check if the OTP has expired
+    if (new Date() > user.resetOTPExpires) {
+      // Clear the expired OTP fields for security
+      user.resetOTP = null;
+      user.resetOTPExpires = null;
+      await user.save();
+
+      return res.status(400).json({
+        success: false,
+        message: 'The verification code has expired. Please request a new one.'
+      });
+    }
+
+    // Check if OTP matches
+    if (user.resetOTP !== otp.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification code. Please try again.'
+      });
+    }
+
+    // Set plaintext new password.
+    // The Mongoose pre-save hook in userModel.js will automatically handle hashing
+    // (exactly like updatePassword) to prevent double hashing issues.
+    user.password = newPassword;
+    user.resetOTP = null;
+    user.resetOTPExpires = null;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Your password has been successfully reset! You can now log in.'
+    });
+  } catch (error) {
+    console.error('Reset Password Mobile Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'An internal error occurred while resetting your password.'
+    });
   }
 };
