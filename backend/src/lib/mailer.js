@@ -4,10 +4,11 @@ import nodemailer from "nodemailer";
 const {
   SMTP_HOST = "smtp.gmail.com",
   SMTP_PORT = "587",
-  SMTP_USER,
-  SMTP_PASS,
   MAIL_FROM,
 } = process.env;
+
+const SMTP_USER = process.env.SMTP_USER || process.env.EMAIL_USER;
+const SMTP_PASS = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 
 let transporter;
 
@@ -30,7 +31,7 @@ export function getMailer() {
   if (transporter) return transporter;
 
   if (!SMTP_USER || !SMTP_PASS) {
-    throw new Error("SMTP_USER/SMTP_PASS are required for Gmail mailer");
+    throw new Error("SMTP_USER/SMTP_PASS (or EMAIL_USER/EMAIL_PASS in .env) are required for Gmail mailer. Please configure them in your environment variables.");
   }
 
   transporter = nodemailer.createTransport({

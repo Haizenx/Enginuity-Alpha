@@ -104,24 +104,9 @@ app.use('/api/video', videoRoutes);
 // Dev route (remove in production)
 app.use("/api/dev", devRoutes);
  
-// 404 JSON (place after all routes)
-app.use((req, res, next) => {
+// ✅ API 404 handler (only intercepts unmatched /api routes)
+app.use("/api/*", (req, res) => {
   return res.status(404).json({ message: "Not Found" });
-});
- 
-// Global error handler (must be last)
-app.use((err, req, res, next) => {
-  // Identify Multer errors explicitly so uploads return 4xx instead of generic 500
-  const isMulter = err && err.name === "MulterError";
-  const status = err?.status || (isMulter ? 400 : 500);
- 
-  // Optional: normalize some common CORS/multipart errors
-  // if (err.message?.includes("CORS")) status = 403;
- 
-  return res.status(status).json({
-    message: isMulter ? `Upload error: ${err.code}` : err.message || "Server error",
-    details: process.env.NODE_ENV !== "production" ? err : undefined,
-  });
 });
  
 // Serve frontend in production
@@ -147,6 +132,26 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(frontendDistPath, "index.html"));
   });
 }
+
+// General 404 JSON for non-API routes (fallback if not in production)
+app.use((req, res, next) => {
+  return res.status(404).json({ message: "Not Found" });
+});
+ 
+// Global error handler (must be last)
+app.use((err, req, res, next) => {
+  // Identify Multer errors explicitly so uploads return 4xx instead of generic 500
+  const isMulter = err && err.name === "MulterError";
+  const status = err?.status || (isMulter ? 400 : 500);
+ 
+  // Optional: normalize some common CORS/multipart errors
+  // if (err.message?.includes("CORS")) status = 403;
+ 
+  return res.status(status).json({
+    message: isMulter ? `Upload error: ${err.code}` : err.message || "Server error",
+    details: process.env.NODE_ENV !== "production" ? err : undefined,
+  });
+});
  
  
 // Startup
