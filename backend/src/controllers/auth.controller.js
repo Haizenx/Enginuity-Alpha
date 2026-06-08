@@ -253,7 +253,11 @@ export const forgotPassword = async (req, res) => {
     if (!identifier) return res.status(200).json(generic);
 
     const email = String(identifier).toLowerCase().trim();
-    const user = await User.findOne({ email, isActive: true });
+    let user = await User.findOne({ email, isActive: true });
+    
+    if (!user) {
+      user = await SuperAdmin.findOne({ email, isActive: true });
+    }
 
     if (user) {
       await AdminResetRequest.create({

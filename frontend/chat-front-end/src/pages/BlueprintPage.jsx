@@ -499,18 +499,60 @@ const BlueprintPage = () => {
     }
   }, []);
 
-  const saveToHistory = (promptText, results, inputType) => {
+  useEffect(() => {
+    const fetchDBHistory = async () => {
+      try {
+        const { data } = await axiosInstance.get("/gemini/history");
+        if (data && data.length > 0) {
+          const formatted = data.map(item => ({
+            id: item._id,
+            date: item.createdAt,
+            prompt: item.keywords?.length > 0 ? "Keywords: " + item.keywords.join(", ") : "AI Analysis",
+            type: "image",
+            previewText: item.analysis.substring(0, 100) + "...",
+            fullResponse: item.analysis,
+          }));
+          setHistory(formatted);
+          localStorage.setItem("aiAnalysisHistory", JSON.stringify(formatted));
+        }
+      } catch (error) {
+        console.error("Error fetching analysis history from DB", error);
+      }
+    };
+    
+    fetchDBHistory();
+  }, []);
+
+
+    const saveToHistory = async (promptText, results, inputType) => {
     const newItem = {
       id: Date.now(),
       date: new Date().toISOString(),
       prompt: promptText || "Image Analysis",
       type: inputType,
       previewText: results.substring(0, 100) + "...",
-      fullResponse: results, // Added to allow reloading
+      fullResponse: results, 
     };
-    const updatedHistory = [newItem, ...history].slice(0, 10); // Keep last 10
+    
+    // Optimistic UI update
+    const updatedHistory = [newItem, ...history].slice(0, 50); 
     setHistory(updatedHistory);
     localStorage.setItem("aiAnalysisHistory", JSON.stringify(updatedHistory));
+
+    // Save to Database
+    try {
+      // For database saving, if it's an image, we need the base64 string
+      // But we only want to save if there's an image because the route requires imageBase64 currently.
+      // If we don't have the image in base64 readily available here, we might just rely on the API.
+      // Wait, let's just make the backend endpoint accept text too.
+      await axiosInstance.post("/gemini/history", {
+        imageBase64: image ? image.split(',')[1] : null, // Remove data:image/jpeg;base64, prefix if present
+        analysis: results,
+        promptText: promptText
+      });
+    } catch (err) {
+      console.error("Failed to save history to DB", err);
+    }
   };
 
   const loadHistoryItem = (item) => {

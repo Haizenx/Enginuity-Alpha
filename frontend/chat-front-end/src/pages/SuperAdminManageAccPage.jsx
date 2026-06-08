@@ -311,9 +311,11 @@ const SuperAdminManageAccPage = () => {
 
   const deactivate = async (user) => {
     try {
-      const { data } = await axiosInstance.patch(`/users/${user._id}/status`, {
-        isActive: !user.isActive,
-      });
+      const endpoint = user.isActive 
+        ? `/admin/users/${user._id}/deactivate`
+        : `/admin/users/${user._id}/reactivate`;
+        
+      const { data } = await axiosInstance.patch(endpoint);
       toast.success(data?.isActive ? "User reactivated" : "User deactivated");
       fetchUsers();
     } catch (err) {

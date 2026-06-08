@@ -98,56 +98,48 @@ export async function sendMail({ to, subject, html, text }) {
 export async function sendWelcomeCredentials({ to, fullName, username, tempPassword, role }) {
   const subject = "Your Enginuity account credentials";
 
-  const html = `
-    <div style="font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;max-width:600px">
-      <h2 style="margin:0 0 8px;color:#1976d2">Welcome to Enginuity</h2>
-      <p style="margin:0 0 12px;font-size:16px">Hello ${fullName || "there"}, your ${role === "project_manager" ? "Project Manager" : role === "client" ? "Client" : "user"} account has been created.</p>
-      
-      <div style="background:#f6f8fa;padding:16px;border-radius:8px;margin:16px 0;border-left:4px solid #1976d2">
-        <div style="margin-bottom:12px">
-          <strong style="display:block;margin-bottom:4px;color:#424242">Username:</strong>
-          <code style="background:#fff;padding:8px 12px;border-radius:4px;display:inline-block;font-size:15px;color:#d32f2f;font-weight:600">${username}</code>
-        </div>
-        <div>
-          <strong style="display:block;margin-bottom:4px;color:#424242">Temporary Password:</strong>
-          <code style="background:#fff;padding:8px 12px;border-radius:4px;display:inline-block;font-size:15px;color:#d32f2f;font-weight:600">${tempPassword}</code>
-        </div>
+    const html = `
+    <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+      <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 32px 24px; text-align: center;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">Enginuity</h1>
+        <p style="margin: 8px 0 0; color: #e0e7ff; font-size: 16px;">Welcome to your workspace</p>
       </div>
-      
-      <div style="background:#fff3e0;padding:12px 16px;border-radius:8px;margin:16px 0;border-left:4px solid #ff9800">
-        <p style="margin:0;color:#e65100;font-weight:500">
-          <strong>Important:</strong> Please sign in using your <strong>username</strong> (not your email address) and change your password immediately for security.
-        </p>
+      <div style="padding: 32px 24px;">
+        <h2 style="margin: 0 0 16px; color: #1e293b; font-size: 20px;">Hello ${fullName || "there"},</h2>
+        <p style="margin: 0 0 24px; color: #475569; font-size: 16px;">Your <strong>${role === "project_manager" ? "Project Manager" : role === "client" ? "Client" : "User"}</strong> account has been officially created. Below are your temporary login credentials.</p>
+        
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+          <div style="margin-bottom: 16px;">
+            <p style="margin: 0 0 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">Username</p>
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 16px; font-family: monospace; font-size: 16px; font-weight: 600; color: #0f172a;">${username}</div>
+          </div>
+          <div>
+            <p style="margin: 0 0 4px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">Temporary Password</p>
+            <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 16px; font-family: monospace; font-size: 16px; font-weight: 600; color: #0f172a;">${tempPassword}</div>
+          </div>
+        </div>
+
+        <div style="background-color: #fffbeb; border-left: 4px solid #fbbf24; padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 24px;">
+          <p style="margin: 0; color: #b45309; font-size: 14px; font-weight: 500;"><strong>Security Notice:</strong> Please sign in using your username and immediately change your password in the Settings page.</p>
+        </div>
+
+        ${role === "client" ? `
+        <div style="margin-top: 32px; border-top: 1px solid #e2e8f0; padding-top: 24px;">
+          <h3 style="margin: 0 0 12px; color: #1e293b; font-size: 16px;">Get the Mobile App</h3>
+          <p style="margin: 0 0 16px; color: #475569; font-size: 14px;">As a client, you can track your project's progress directly from your phone.</p>
+          <a href="https://drive.google.com/drive/folders/1TnX8mwWjJi46ruTzza7Bquigx2Fy5ysy?fbclid=IwY2xjawNR7ydleHRuA2FlbQIxMQABHvcleW-h5Ur2Y_k330lZmehml6ni9nQQzqEAkWDGghJrc_ERHrwGcrtufjj0_aem_SP_d33z5gg0_ScnwHAqpLQ" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 15px;">Download Android APK</a>
+        </div>
+        ` : `
+        <div style="margin-top: 32px; border-top: 1px solid #e2e8f0; padding-top: 24px; text-align: center;">
+          <a href="https://enginuity-alpha.onrender.com" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-weight: 600; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-size: 15px;">Sign In to Portal</a>
+        </div>
+        `}
       </div>
-      
-      ${role === "client" ?
-      `<div>
-            <p style="margin:16px 0 8px;font-size:14px;color:#424242">
-                <strong>Download the Enginuity Mobile App:</strong>
-            </p>
-            <a href="https://drive.google.com/drive/folders/1TnX8mwWjJi46ruTzza7Bquigx2Fy5ysy?fbclid=IwY2xjawNR7ydleHRuA2FlbQIxMQABHvcleW-h5Ur2Y_k330lZmehml6ni9nQQzqEAkWDGghJrc_ERHrwGcrtufjj0_aem_SP_d33z5gg0_ScnwHAqpLQ" style="display:inline-block;padding:10px 16px;background-color:#1976d2;color:#ffffff;text-decoration:none;border-radius:4px;font-size:14px;font-weight:600;">
-                Download APK from Google Drive
-            </a>
-            <div style="margin:16px 0 8px;font-size:13px;color:#666">
-                <p><strong>Installation Instructions:</strong></p>
-                <ol style="padding-left: 20px; margin: 0;">
-                    <li>Click the link to download the file. You may see a security warning; this is normal.</li>
-                    <li>Open the downloaded file to begin installation.</li>
-                    <li>Your phone will ask for permission to "install unknown apps". You must enable this to proceed.</li>
-                </ol>
-            </div>
-        </div>`
-      :
-      `<p style="margin:16px 0 8px;font-size:14px;color:#666">
-            Sign in at the Enginuity web portal.
-        </p>`
-    }
-      
-      <p style="margin:16px 0;font-size:13px;color:#999;border-top:1px solid #eee;padding-top:12px">
-        This email was sent to: ${to}
-      </p>
-    </div>
-  `;
+      <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
+        <p style="margin: 0; color: #94a3b8; font-size: 12px;">This email was sent to ${to}</p>
+        <p style="margin: 8px 0 0; color: #94a3b8; font-size: 12px;">&copy; ${new Date().getFullYear()} Enginuity. All rights reserved.</p>
+      </div>
+    </div>`;
 
   const text = `
 Welcome to Enginuity
@@ -177,16 +169,23 @@ This email was sent to: ${to}
  */
 export async function sendAdminResetNotice({ to, fullName, tempPassword }) {
   const subject = "Your Enginuity password has been reset";
-  const html = `
-    <div style="font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6">
-      <h2 style="margin:0 0 8px">Password reset</h2>
-      <p style="margin:0 0 12px">Hello ${fullName || "there"}, your password was reset by an administrator.</p>
-      <div style="background:#f6f8fa;padding:12px 14px;border-radius:8px;margin:8px 0 12px">
-        <div>Temporary password: <code>${tempPassword}</code></div>
+    const html = `
+    <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+      <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 24px; text-align: center;">
+        <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 800;">Password Reset</h1>
       </div>
-      <p style="margin:0 0 8px">Use this password to sign in, then set a new one in Settings.</p>
-    </div>
-  `;
+      <div style="padding: 32px 24px;">
+        <h2 style="margin: 0 0 16px; color: #1e293b; font-size: 18px;">Hello ${fullName || "there"},</h2>
+        <p style="margin: 0 0 24px; color: #475569; font-size: 15px;">Your password was recently reset by an administrator per your request. Please use the temporary password below to sign in.</p>
+        
+        <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 20px; margin-bottom: 24px; text-align: center;">
+          <p style="margin: 0 0 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b;">Temporary Password</p>
+          <div style="font-family: monospace; font-size: 20px; font-weight: 700; color: #4f46e5; letter-spacing: 1px;">${tempPassword}</div>
+        </div>
+
+        <p style="margin: 0; color: #475569; font-size: 14px; text-align: center;">You will be required to change this password immediately upon logging in.</p>
+      </div>
+    </div>`;
   return sendMail({ to, subject, html });
 }
 
@@ -199,20 +198,23 @@ export async function sendAdminResetNotice({ to, fullName, tempPassword }) {
  */
 export async function sendOTPEmail(to, otp) {
   const subject = "Verification Code for Password Reset";
-  const html = `
-    <div style="font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;max-width:500px;margin:0 auto;padding:24px;border:1px solid #e0e0e0;border-radius:12px;background-color:#ffffff">
-      <h2 style="margin:0 0 12px;color:#1976d2;text-align:center;font-size:22px;font-weight:700">Reset Your Password</h2>
-      <p style="margin:0 0 20px;font-size:15px;color:#424242;text-align:center">
-        We received a request to reset the password for your account. Please use the verification code below to complete the process. This code is valid for 10 minutes.
-      </p>
-      <div style="background:#f6f8fa;padding:16px 20px;border-radius:8px;margin:16px auto;text-align:center;max-width:200px;border:1px dashed #1976d2">
-        <code style="font-size:32px;font-weight:700;color:#d32f2f;letter-spacing:4px;font-family:Consolas,Monaco,monospace">${otp}</code>
+    const html = `
+    <div style="font-family: 'Inter', system-ui, -apple-system, sans-serif; line-height: 1.6; max-width: 500px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+      <div style="padding: 32px 24px; text-align: center;">
+        <h2 style="margin: 0 0 12px; color: #1e293b; font-size: 22px; font-weight: 800;">Verification Code</h2>
+        <p style="margin: 0 0 24px; color: #475569; font-size: 15px;">
+          We received a request to reset your password. Use the code below to proceed. <strong>This code expires in 10 minutes.</strong>
+        </p>
+        
+        <div style="background: #f8fafc; padding: 24px; border-radius: 8px; margin: 0 auto 24px; border: 2px dashed #cbd5e1; display: inline-block;">
+          <div style="font-family: 'Courier New', Courier, monospace; font-size: 36px; font-weight: 800; color: #4f46e5; letter-spacing: 6px;">${otp}</div>
+        </div>
+        
+        <p style="margin: 0; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+          If you didn't request this, you can safely ignore this email. Your password will not be changed.
+        </p>
       </div>
-      <p style="margin:20px 0 0;font-size:13px;color:#757575;text-align:center;border-top:1px solid #eee;padding-top:12px">
-        If you did not request a password reset, please ignore this email. Your password will remain unchanged.
-      </p>
-    </div>
-  `;
+    </div>`;
   const text = `Verification Code for Password Reset\n\nHello,\n\nWe received a request to reset the password for your Enginuity account. Please use the verification code (OTP) below to complete the process. This code is valid for 10 minutes.\n\nVerification Code: ${otp}\n\nIf you did not request a password reset, please ignore this email.`;
 
   return sendMail({ to, subject, html, text });

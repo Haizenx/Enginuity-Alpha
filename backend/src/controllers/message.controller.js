@@ -25,11 +25,21 @@ export const getUsersForSidebar = async (req, res) => {
           { projectManager: loggedInUserId },
           { projectExtras: loggedInUserId },
         ],
-      }).select("client");
+      }).select("client projectManager projectExtras");
 
       const clientIds = assignedProjects.map((p) => p.client).filter(Boolean);
+      
+      const pmIds = [];
+      for (const p of assignedProjects) {
+        if (p.projectManager && String(p.projectManager) !== String(loggedInUserId)) pmIds.push(p.projectManager);
+        if (Array.isArray(p.projectExtras)) {
+            for (const extra of p.projectExtras) {
+                if (String(extra) !== String(loggedInUserId)) pmIds.push(extra);
+            }
+        }
+      }
 
-      const clients = await User.find({ _id: { $in: clientIds } }).select(
+      const clientsAndPms = await User.find({ _id: { $in: [...clientIds, ...pmIds] } }).select(
         "-password -__v -loginAttempts -lockedUntil"
       );
 
@@ -38,7 +48,7 @@ export const getUsersForSidebar = async (req, res) => {
       );
 
       const byId = new Map();
-      for (const u of [...clients, ...superAdmins]) byId.set(String(u._id), u);
+      for (const u of [...clientsAndPms, ...superAdmins]) byId.set(String(u._id), u);
       users = Array.from(byId.values());
     } else if (role === "client") {
       const myProjects = await Project.find({

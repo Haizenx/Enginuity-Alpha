@@ -62,7 +62,6 @@ export default function SuperAdminDashboard() {
   const [clients, setClients] = useState([]);
   const [projectManagers, setProjectManagers] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [createdCreds, setCreatedCreds] = useState(null);
 
   // Modal helpers
   const openClientModal = () => setIsClientModalOpen(true);
@@ -226,14 +225,6 @@ export default function SuperAdminDashboard() {
         contactNumber: contactNumber.trim(),
       });
       toast.success(data?.message || "Project Manager created");
-
-      const creds = data?.credentials || {};
-      setCreatedCreds({
-        email: creds.email,
-        username: creds.username,
-        password: creds.password,
-        emailSent: data?.emailSent === true,                     
-      });
 
       // Email status toast
       if (data?.emailSent) {
@@ -593,7 +584,7 @@ export default function SuperAdminDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Client Name *</label>
-                    <input type="text" className={inputClassName} placeholder="Acme Corp" value={clientForm.clientName} onChange={(e) => setClientForm({ ...clientForm, clientName: e.target.value })} required />
+                    <input type="text" className={inputClassName} placeholder="Acme Corp" value={clientForm.clientName} onChange={(e) => setClientForm({ ...clientForm, clientName: e.target.value.replace(/[0-9]/g, "") })} required />
                  </div>
                  <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Email *</label>
@@ -656,7 +647,7 @@ export default function SuperAdminDashboard() {
             <form className="space-y-4" onSubmit={handleCreateProjectManager}>
               <div>
                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Full Name *</label>
-                 <input type="text" className={inputClassName} placeholder="John Doe" value={projectManagerForm.fullName} onChange={(e) => setProjectManagerForm({ ...projectManagerForm, fullName: e.target.value })} required />
+                 <input type="text" className={inputClassName} placeholder="John Doe" value={projectManagerForm.fullName} onChange={(e) => setProjectManagerForm({ ...projectManagerForm, fullName: e.target.value.replace(/[0-9]/g, "") })} required />
               </div>
               <div>
                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Email *</label>
@@ -839,45 +830,6 @@ export default function SuperAdminDashboard() {
                 Done
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Credentials Created Modal */}
-      {createdCreds && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setCreatedCreds(null)} />
-          <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 z-10 border border-slate-100 scale-in-center text-center">
-            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mx-auto mb-6 shadow-inner">
-               <CheckCircle2 size={32} />
-            </div>
-            
-            <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Account Created!</h3>
-            
-            {"emailSent" in createdCreds ? (
-              createdCreds.emailSent ? (
-                <div className="inline-block bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-100 mb-6">Email Automatically Sent</div>
-              ) : (
-                <div className="inline-block bg-rose-50 text-rose-600 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border border-rose-100 mb-6">Email Delivery Failed</div>
-              )
-            ) : null}
-
-            <p className="text-sm font-medium text-slate-500 mb-6">Please securely share these temporary credentials with the user.</p>
-            
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left space-y-3 mb-8">
-              <div>
-                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Username</span>
-                 <span className="font-mono font-bold text-slate-800 text-sm bg-white px-3 py-1.5 rounded-lg border border-slate-200 block shadow-sm">{createdCreds.username || createdCreds.email}</span>
-              </div>
-              <div>
-                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Temp Password</span>
-                 <span className="font-mono font-bold text-slate-800 text-sm bg-white px-3 py-1.5 rounded-lg border border-slate-200 block shadow-sm">{createdCreds.password}</span>
-              </div>
-            </div>
-
-            <button className="w-full py-3.5 rounded-xl font-bold tracking-wide text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm" onClick={() => setCreatedCreds(null)}>
-               Acknowledge & Close
-            </button>
           </div>
         </div>
       )}

@@ -12,10 +12,24 @@ import { axiosInstance } from "../lib/axios";
 import { useProject } from "../services/useProject";
 import { useActivities } from "../services/useActivities";
 import { useDocuments } from "../services/useDocuments";
+import { useAuthStore } from "../store/useAuthStore";
 
 const ProjectDetails = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const { authUser } = useAuthStore();
+  const canEdit = authUser?.role === "superadmin" || authUser?.role === "project_manager";
+
+  const handleStatusChange = async (newStatus) => {
+    try {
+      await axiosInstance.put(`/projects/${projectId}/update-status`, { status: newStatus });
+      toast.success("Project status updated successfully");
+      fetchProject(); // refresh data
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update status");
+    }
+  };
+
 
   const { project, loading, fetchProject } = useProject(projectId);
 
@@ -165,6 +179,8 @@ const ProjectDetails = () => {
 
       <div className="relative z-10">
         <ProjectHeader
+          status={project?.status}
+          onStatusChange={canEdit ? handleStatusChange : undefined}
           name={displayName}
           location={project?.location}
           description={project?.description}

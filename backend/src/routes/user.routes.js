@@ -1,5 +1,6 @@
 import express from "express";
 import User from "../models/user.model.js";
+import SuperAdmin from "../models/superAdmin.model.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { sendWelcomeCredentials } from "../lib/mailer.js";
 import { uploadAvatar } from "../middleware/upload.js";
@@ -285,7 +286,8 @@ router.get("/", protectRoute, async (req, res) => {
 // Get current user profile
 router.get("/profile", protectRoute, async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
+    let user = await User.findById(req.user._id).select("-password");
+    if (!user) user = await SuperAdmin.findById(req.user._id).select("-password");
     return res.json(user);
   } catch (error) {
     console.error("Error fetching profile:", error);
@@ -309,7 +311,8 @@ router.put(
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const user = await User.findById(req.user._id);
+      let user = await User.findById(req.user._id);
+      if (!user) user = await SuperAdmin.findById(req.user._id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -332,7 +335,8 @@ router.put("/profile", protectRoute, async (req, res) => {
   try {
     const { name, email, phone, bio } = req.body;
 
-    const user = await User.findById(req.user._id);
+    let user = await User.findById(req.user._id);
+    if (!user) user = await SuperAdmin.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

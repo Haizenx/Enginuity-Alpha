@@ -28,7 +28,7 @@ const ProjectPage = () => {
           const deadlineDate = project.targetDeadline ? new Date(project.targetDeadline) : null;
           if (deadlineDate) deadlineDate.setHours(0, 0, 0, 0);
 
-          if (deadlineDate && deadlineDate < today) {
+          if (project.status === 'completed') {
             finished.push(project);
           } else {
             ongoing.push(project);

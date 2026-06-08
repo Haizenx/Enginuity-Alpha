@@ -8,6 +8,8 @@ const ProjectHeader = ({
   imageUrl,
   onBack,
   onOpenCoverUpload,
+  status,
+  onStatusChange
 }) => {
   return (
     <div className="w-full relative z-20">
@@ -34,7 +36,23 @@ const ProjectHeader = ({
         )}
 
         {/* Top-right actions */}
-        <div className="absolute top-6 right-6 flex gap-3">
+        <div className="absolute top-6 right-6 flex items-center gap-3">
+          {onStatusChange && (
+            <div className="relative group">
+              <select
+                value={status || "pending"}
+                onChange={(e) => onStatusChange(e.target.value)}
+                className="appearance-none outline-none pl-5 pr-10 py-2.5 bg-white/20 hover:bg-white backdrop-blur-md rounded-full text-white hover:text-slate-800 shadow-sm hover:shadow-lg transition-all duration-300 border border-white/30 font-semibold text-sm tracking-wide cursor-pointer text-center"
+              >
+                <option value="pending" className="text-slate-800">Preparing</option>
+                <option value="in-progress" className="text-slate-800">Building</option>
+                <option value="completed" className="text-slate-800">Finished</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-white group-hover:text-slate-800 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
+          )}
           {onOpenCoverUpload && (
             <button 
               className="flex items-center gap-2 px-5 py-2.5 bg-white/20 hover:bg-white backdrop-blur-md rounded-full text-white hover:text-slate-800 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 border border-white/30 font-semibold text-sm tracking-wide" 
