@@ -27,6 +27,7 @@ import devRoutes from "./routes/dev.routes.js";
 import supplierRoutes from "./routes/supplier.routes.js";
 import cloudConvertRoutes from "./routes/cloudConvert.routes.js";
 import videoRoutes from "./routes/videos.routes.js";
+import geminiRoutes from "./routes/gemini.route.js";
  
  
 dotenv.config();
@@ -98,6 +99,7 @@ app.use("/api/pm", projectManagerRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/cloudconvert", cloudConvertRoutes);
 app.use('/api/video', videoRoutes);
+app.use("/api/gemini", geminiRoutes);
  
  
  
