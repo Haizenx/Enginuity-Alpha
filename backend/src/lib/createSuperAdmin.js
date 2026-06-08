@@ -3,18 +3,22 @@ import SuperAdmin from "../models/superAdmin.model.js";
 
 const createSuperAdmin = async () => {
   try {
-    const existingSuperAdmin = await SuperAdmin.findOne({ email: "superadmin@enginuity.com" });
-    if (existingSuperAdmin) {
-      console.log("✅ Superadmin already exists");
+    let sa = await SuperAdmin.findOne({ email: "superadmin@enginuity.com" });
+    if (sa) {
+      console.log("🔄 Resetting existing Super Admin password to verify single-hash...");
+      sa.password = "mahirapnapassword";
+      sa.isActive = true;
+      sa.loginAttempts = 0;
+      sa.lockedUntil = null;
+      await sa.save();
+      console.log("✅ Superadmin password updated/corrected");
       return;
     }
-
-    const hashedPassword = await bcrypt.hash("mahirapnapassword", 10);
 
     await SuperAdmin.create({
       email: "superadmin@enginuity.com",
       fullName: "Super Admin",
-      password: hashedPassword,
+      password: "mahirapnapassword",
       permissions: ["all"],
       isActive: true
     });

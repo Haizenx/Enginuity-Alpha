@@ -2,6 +2,18 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore.js";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
+import { 
+  Building2, 
+  UserPlus, 
+  FolderPlus, 
+  LayoutDashboard, 
+  Users2, 
+  Plus, 
+  X, 
+  CheckCircle2, 
+  AlertCircle,
+  FolderKanban
+} from "lucide-react";
 
 export default function SuperAdminDashboard() {
   const { authUser } = useAuthStore();
@@ -22,7 +34,7 @@ export default function SuperAdminDashboard() {
   // Forms
   const [clientForm, setClientForm] = useState({
     clientName: "",
-    email: "",               // NEW
+    email: "",               
     contactNumber: "",
     location: "",
     description: "",
@@ -32,7 +44,7 @@ export default function SuperAdminDashboard() {
 
   const [projectManagerForm, setProjectManagerForm] = useState({
     fullName: "",
-    email: "",               // NEW
+    email: "",               
     contactNumber: "",
   });
 
@@ -51,11 +63,6 @@ export default function SuperAdminDashboard() {
   const [projectManagers, setProjectManagers] = useState([]);
   const [projects, setProjects] = useState([]);
   const [createdCreds, setCreatedCreds] = useState(null);
-
-  // Auth guard
-  if (authUser?.role !== "superadmin") {
-    return <p className="text-red-500">Unauthorized Access</p>;
-  }
 
   // Modal helpers
   const openClientModal = () => setIsClientModalOpen(true);
@@ -109,6 +116,19 @@ export default function SuperAdminDashboard() {
     fetchProjects();
   }, []);
 
+  // Auth guard
+  if (authUser?.role !== "superadmin") {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 p-8 rounded-3xl shadow-sm flex flex-col items-center gap-4 max-w-md text-center">
+           <AlertCircle className="w-12 h-12 text-rose-500" />
+           <h2 className="text-xl font-black tracking-tight">Unauthorized Access</h2>
+           <p className="font-medium text-rose-600">You must be a super admin to view this page.</p>
+        </div>
+      </div>
+    );
+  }
+
   // Auto-fill project fields on client select
   const handleProjectFieldChange = (e) => {
     const { name, value } = e.target;
@@ -134,15 +154,15 @@ export default function SuperAdminDashboard() {
 
     const { clientName, email, contactNumber, location, description, startDate, endDate } = clientForm;
     if (!clientName.trim()) return toast.error("Client name is required");
-    if (!email.trim()) return toast.error("Client email is required");                 // NEW
+    if (!email.trim()) return toast.error("Client email is required");                 
     if (!contactNumber.trim()) return toast.error("Contact number is required");
-    if (new Date(startDate) > new Date(endDate)) return toast.error("Start date cannot be after end date");
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) return toast.error("Start date cannot be after end date");
 
     setIsSubmitting(true);
     try {
       const { data } = await axiosInstance.post("/users/create-client-auto", {
         fullName: clientName.trim(),
-        email: email.trim(),                                       // NEW
+        email: email.trim(),                                       
         contactNumber: contactNumber.trim(),
         location: location.trim(),
         description: description.trim(),
@@ -158,13 +178,13 @@ export default function SuperAdminDashboard() {
         email: creds.email,
         username: creds.username,
         password: creds.password,
-        emailSent: data?.emailSent === true,                       // NEW
+        emailSent: data?.emailSent === true,                       
       });
 
       setIsClientModalOpen(false);
       setClientForm({
         clientName: "",
-        email: "",                                                 // NEW
+        email: "",                                                 
         contactNumber: "",
         location: "",
         description: "",
@@ -195,14 +215,14 @@ export default function SuperAdminDashboard() {
 
     const { fullName, email, contactNumber } = projectManagerForm;
     if (!fullName.trim()) return toast.error("Project Manager name is required");
-    if (!email.trim()) return toast.error("Project Manager email is required");       // NEW
+    if (!email.trim()) return toast.error("Project Manager email is required");       
     if (!contactNumber.trim()) return toast.error("Contact number is required");
 
     setIsSubmitting(true);
     try {
       const { data } = await axiosInstance.post("/users/create-pm-auto", {
         fullName: fullName.trim(),
-        email: email.trim(),                                     // NEW
+        email: email.trim(),                                     
         contactNumber: contactNumber.trim(),
       });
       toast.success(data?.message || "Project Manager created");
@@ -212,7 +232,7 @@ export default function SuperAdminDashboard() {
         email: creds.email,
         username: creds.username,
         password: creds.password,
-        emailSent: data?.emailSent === true,                     // NEW
+        emailSent: data?.emailSent === true,                     
       });
 
       // Email status toast
@@ -229,7 +249,7 @@ export default function SuperAdminDashboard() {
       }
 
       setIsProjectManagerModalOpen(false);
-      setProjectManagerForm({ fullName: "", email: "", contactNumber: "" });         // NEW
+      setProjectManagerForm({ fullName: "", email: "", contactNumber: "" });         
     } catch (err) {
       const msg = err?.response?.data?.message || "Failed to create project manager";
       toast.error(msg);
@@ -305,20 +325,12 @@ export default function SuperAdminDashboard() {
       await axiosInstance.put(`/projects/${projectId}/remove-pms`, { managerIds: [managerId] });
       toast.success("Project Manager removed");
       await fetchProjects();
+      
+      // Update local chooser state so the UI reflects the removal immediately
+      setCurrentProjectManagers(prev => prev.filter(id => id !== managerId));
     } catch (err) {
       console.error("Error removing PM from project:", err);
       toast.error("Failed to remove Project Manager");
-    }
-  };
-
-  const handleUpdateStatus = async (projectId, status) => {
-    try {
-      await axiosInstance.put(`/projects/${projectId}/update-status`, { status });
-      toast.success("Status updated");
-      await fetchProjects();
-    } catch (err) {
-      console.error("Error updating status:", err);
-      toast.error("Failed to update status");
     }
   };
 
@@ -357,27 +369,19 @@ export default function SuperAdminDashboard() {
     setCurrentProjectManagers([]);
   };
 
-  const statusBadgeClass = (label) => {
+  const statusBadgeStyle = (label) => {
     switch (label) {
       case "Ongoing":
-        return "badge-info";
+        return "bg-indigo-50 text-indigo-600 border border-indigo-100";
       case "Completed":
-        return "badge-success";
+        return "bg-emerald-50 text-emerald-600 border border-emerald-100";
       case "Finishing":
-        return "badge-warning";
+        return "bg-amber-50 text-amber-600 border border-amber-100";
       case "Planning":
       case "Preparing":
       default:
-        return "badge-ghost";
+        return "bg-slate-100 text-slate-600 border border-slate-200";
     }
-  };
-
-  const cycleStatus = async (proj) => {
-    const order = ["planning", "in_progress", "completed"];
-    const current = (proj.status || "planning").toLowerCase();
-    const idx = order.indexOf(current);
-    const next = order[(idx + 1) % order.length];
-    await handleUpdateStatus(proj._id, next);
   };
 
   // Table helpers
@@ -409,450 +413,385 @@ export default function SuperAdminDashboard() {
 
   const safeProjects = Array.isArray(projects) ? projects : [];
 
+  // Input styling
+  const inputClassName = "bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm w-full transition-colors focus:bg-white";
+
   // Render
   return (
-    <div className="p-6 md:p-8">
-      <h1 className="text-4xl font-bold mb-4">Super Admin Dashboard</h1>
-      <p className="mb-6 text-lg">Manage clients, project managers, and projects here.</p>
+    <main className="min-h-screen w-full bg-slate-50/50 relative py-12 px-4 sm:px-6 lg:px-8 pb-32">
+      {/* Ambient Background Blobs */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-indigo-200/40 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-emerald-200/40 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <button type="button" className="btn btn-primary h-20 flex items-center justify-center" onClick={openClientModal}>
-          Create Client
-        </button>
+      <div className="max-w-[1400px] mx-auto relative z-10">
+        
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-10">
+          <div className="w-16 h-16 bg-slate-800 rounded-[1.5rem] flex items-center justify-center text-white shadow-xl shadow-slate-800/20">
+             <LayoutDashboard size={32} />
+          </div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight">System Control</h1>
+            <p className="text-lg font-medium text-slate-500 mt-2">Manage clients, project managers, and project creation.</p>
+          </div>
+        </div>
 
-        <button type="button" className="btn btn-secondary h-20 flex items-center justify-center" onClick={openProjectManagerModal}>
-          Create Project Manager
-        </button>
+        {/* Quick Action Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+           <button 
+             onClick={openClientModal}
+             className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col items-center text-center relative overflow-hidden"
+           >
+              <div className="absolute -inset-8 bg-gradient-to-tr from-sky-100/50 to-indigo-100/50 opacity-0 group-hover:opacity-100 transition-opacity blur-2xl"></div>
+              <div className="w-16 h-16 bg-sky-50 text-sky-500 rounded-2xl flex items-center justify-center mb-4 relative z-10 group-hover:scale-110 transition-transform">
+                 <Building2 size={32} />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 relative z-10">New Client</h3>
+              <p className="text-sm font-medium text-slate-500 mt-2 relative z-10">Register a new client profile</p>
+           </button>
 
-        <button
-          type="button"
-          className="btn btn-accent h-20 flex items-center justify-center"
-          onClick={() => {
-            fetchClients();
-            fetchProjectManagers();
-            fetchProjects();
-            openProjectModal();
-          }}
-        >
-          Create Project
-        </button>
+           <button 
+             onClick={openProjectManagerModal}
+             className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col items-center text-center relative overflow-hidden"
+           >
+              <div className="absolute -inset-8 bg-gradient-to-tr from-emerald-100/50 to-teal-100/50 opacity-0 group-hover:opacity-100 transition-opacity blur-2xl"></div>
+              <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center mb-4 relative z-10 group-hover:scale-110 transition-transform">
+                 <Users2 size={32} />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 relative z-10">New Manager</h3>
+              <p className="text-sm font-medium text-slate-500 mt-2 relative z-10">Create a project manager account</p>
+           </button>
+
+           <button 
+             onClick={() => {
+                fetchClients();
+                fetchProjectManagers();
+                fetchProjects();
+                openProjectModal();
+             }}
+             className="bg-indigo-600 p-8 rounded-[2rem] shadow-lg shadow-indigo-600/20 hover:shadow-xl hover:-translate-y-1 transition-all group flex flex-col items-center text-center relative overflow-hidden"
+           >
+              <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="w-16 h-16 bg-white/20 text-white rounded-2xl flex items-center justify-center mb-4 relative z-10 group-hover:scale-110 transition-transform backdrop-blur-md">
+                 <FolderPlus size={32} />
+              </div>
+              <h3 className="text-xl font-black text-white relative z-10">Create Project</h3>
+              <p className="text-sm font-medium text-indigo-100 mt-2 relative z-10">Initialize a new construction project</p>
+           </button>
+        </div>
+
+        {/* Master Project Table */}
+        <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-sm animate-in fade-in duration-500">
+           <div className="flex items-center gap-3 mb-8 border-b border-slate-100 pb-4">
+              <div className="w-2 h-8 bg-indigo-400 rounded-full"></div>
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight">Active Projects Registry</h2>
+           </div>
+
+           <div className="overflow-x-auto rounded-[1.5rem] border border-slate-100 shadow-sm bg-white">
+             <table className="w-full text-left whitespace-nowrap">
+               <thead className="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-widest">
+                 <tr>
+                   <th className="py-4 px-6">Client</th>
+                   <th className="py-4 px-6">Description</th>
+                   <th className="py-4 px-6">Project Managers</th>
+                   <th className="py-4 px-6">Status</th>
+                   <th className="py-4 px-6">Timeline</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-100">
+                 {safeProjects.length === 0 ? (
+                   <tr>
+                     <td colSpan={5} className="text-center py-12 text-slate-500 font-medium">
+                        <FolderKanban className="w-8 h-8 mx-auto text-slate-300 mb-3" />
+                        No projects registered yet.
+                     </td>
+                   </tr>
+                 ) : (
+                   safeProjects.map((p) => {
+                     const assignedPMs = getProjectManagers(p);
+                     const statusValue = (p.status || "").toLowerCase();
+                     const statusLabel = statusValue === "in_progress" ? "Ongoing"
+                       : statusValue === "completed" ? "Completed"
+                       : statusValue === "finishing" ? "Finishing"
+                       : statusValue === "preparing" ? "Preparing"
+                       : statusValue === "planning" ? "Planning"
+                       : "Preparing";
+       
+                     return (
+                       <tr key={p._id} className="hover:bg-slate-50/50 transition-colors">
+                         <td className="py-4 px-6 font-bold text-slate-800">{getClientName(p)}</td>
+                         <td className="py-4 px-6">
+                            <div className="max-w-[250px] truncate text-sm font-medium text-slate-500" title={p.description}>
+                               {p.description || "-"}
+                            </div>
+                         </td>
+       
+                         <td className="py-4 px-6">
+                           <div className="flex items-center gap-2">
+                             {assignedPMs.length === 0 ? (
+                               <span className="text-xs font-bold text-rose-500 bg-rose-50 px-2 py-1 rounded-md">Unassigned</span>
+                             ) : (
+                               <div className="flex flex-wrap gap-1">
+                                 {assignedPMs.map((pm) => (
+                                   <span key={pm._id} className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg text-xs font-bold">
+                                     {pm.fullName || pm.name}
+                                   </span>
+                                 ))}
+                               </div>
+                             )}
+                             <button
+                               type="button"
+                               className="w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center hover:bg-indigo-500 hover:text-white transition-colors flex-shrink-0 shadow-sm border border-indigo-100"
+                               title="Manage Managers"
+                               onClick={() => openPMChooserFor(p._id)}
+                             >
+                               <Plus size={14} strokeWidth={3} />
+                             </button>
+                           </div>
+                         </td>
+       
+                         <td className="py-4 px-6">
+                           <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${statusBadgeStyle(statusLabel)}`}>
+                             {statusLabel}
+                           </span>
+                         </td>
+       
+                         <td className="py-4 px-6">
+                           <div className="flex flex-col gap-1">
+                              <span className="text-xs font-bold text-slate-500">Start: {p.startDate ? String(p.startDate).slice(0, 10) : "-"}</span>
+                              <span className="text-xs font-bold text-slate-700">Due: {p.targetDeadline ? String(p.targetDeadline).slice(0, 10) : "-"}</span>
+                           </div>
+                         </td>
+                       </tr>
+                     );
+                   })
+                 )}
+               </tbody>
+             </table>
+           </div>
+        </div>
       </div>
 
-      {/* ---------- TABLE: Clients • Projects • PM • Status ---------- */}
-      <div className="overflow-x-auto mt-8">
-        <table className="table w-full">
-          <thead>
-            <tr>
-              <th>Client</th>
-              <th>Project Description</th>
-              <th>Project Manager(s)</th>
-              <th>Status</th>
-              <th>Start Date</th>
-              <th>Target Deadline</th>
-            </tr>
-          </thead>
-        <tbody>
-          {safeProjects.length === 0 ? (
-            <tr>
-              <td colSpan={6} className="text-center text-sm opacity-70 py-6">
-                No projects yet.
-              </td>
-            </tr>
-          ) : (
-            safeProjects.map((p) => {
-              const assignedPMs = getProjectManagers(p);
-              const statusValue = (p.status || "").toLowerCase();
-              const statusLabel = statusValue === "in_progress" ? "Ongoing"
-                : statusValue === "completed" ? "Completed"
-                : statusValue === "finishing" ? "Finishing"
-                : statusValue === "preparing" ? "Preparing"
-                : statusValue === "planning" ? "Planning"
-                : "Preparing";
+      {/* ---------- Modals ---------- */}
 
-              return (
-                <tr key={p._id}>
-                  <td>{getClientName(p)}</td>
-                  <td className="max-w-[420px] truncate">{p.description || "-"}</td>
-
-                  <td>
-                    <div className="flex flex-col gap-2">
-                      <div className="flex items-center gap-2">
-                        {assignedPMs.length === 0 ? (
-                          <span className="badge">Unassigned</span>
-                        ) : (
-                          <div className="flex flex-wrap gap-1">
-                            {assignedPMs.map((pm) => (
-                              <span key={pm._id} className="badge badge-outline">
-                                {pm.fullName || pm.name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          className="btn btn-ghost btn-xs"
-                          aria-label="Manage project managers"
-                          title="Manage project managers"
-                          onClick={() => openPMChooserFor(p._id)}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    <span className={`badge ${statusBadgeClass(statusLabel)}`}>
-                      {statusLabel}
-                    </span>
-                  </td>
-
-                  <td>{p.startDate ? String(p.startDate).slice(0, 10) : "-"}</td>
-                  <td>{p.targetDeadline ? String(p.targetDeadline).slice(0, 10) : "-"}</td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-        </table>
-      </div>
-
-      {/* ---------- Client Creation Modal ---------- */}
+      {/* Client Modal */}
       {isClientModalOpen && (
-        <dialog open className="modal modal-open modal-bottom sm:modal-middle">
-          <div className="modal-box w-full max-w-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg">Create Client</h3>
-              <button onClick={closeClientModal} className="btn btn-sm btn-circle btn-ghost">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeClientModal} />
+          <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl p-8 z-10 border border-slate-100 scale-in-center max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center gap-3 mb-6">
+               <div className="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center text-sky-600">
+                  <Building2 size={24} />
+               </div>
+               <div>
+                  <h3 className="text-2xl font-black text-slate-800 tracking-tight">Create Client Profile</h3>
+                  <p className="text-xs font-medium text-slate-500 mt-1">Username and temp password will be generated automatically.</p>
+               </div>
             </div>
-
+            
             <form className="space-y-4" onSubmit={handleCreateClient}>
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Client Name</span></label>
-                <input
-                  type="text"
-                  className="input input-bordered w-full"
-                  placeholder="Enter client name"
-                  value={clientForm.clientName}
-                  onChange={(e) => setClientForm({ ...clientForm, clientName: e.target.value })}
-                  required
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Client Name *</label>
+                    <input type="text" className={inputClassName} placeholder="Acme Corp" value={clientForm.clientName} onChange={(e) => setClientForm({ ...clientForm, clientName: e.target.value })} required />
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Email *</label>
+                    <input type="email" className={inputClassName} placeholder="client@acme.com" value={clientForm.email} onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })} required />
+                 </div>
+              </div>
+              
+              <div>
+                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Contact Number *</label>
+                 <input type="tel" className={inputClassName} placeholder="+63 917 000 0000" value={clientForm.contactNumber} onChange={(e) => setClientForm({ ...clientForm, contactNumber: e.target.value })} required />
               </div>
 
-              {/* NEW: Client Email */}
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Email</span></label>
-                <input
-                  type="email"
-                  className="input input-bordered w-full"
-                  placeholder="client@email.com"
-                  value={clientForm.email}
-                  onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
-                  required
-                />
+              <div>
+                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Location (Optional)</label>
+                 <input type="text" className={inputClassName} placeholder="Site address..." value={clientForm.location} onChange={(e) => setClientForm({ ...clientForm, location: e.target.value })} />
               </div>
 
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Contact Number</span></label>
-                <input
-                  type="tel"
-                  className="input input-bordered w-full"
-                  placeholder="e.g. +63 917 894-3088"
-                  value={clientForm.contactNumber}
-                  onChange={(e) => setClientForm({ ...clientForm, contactNumber: e.target.value })}
-                  required
-                />
+              <div>
+                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Description (Optional)</label>
+                 <textarea className={`${inputClassName} min-h-[80px]`} placeholder="Client details..." value={clientForm.description} onChange={(e) => setClientForm({ ...clientForm, description: e.target.value })} />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Contract Start (Optional)</label>
+                    <input type="date" className={inputClassName} value={clientForm.startDate} onChange={(e) => setClientForm({ ...clientForm, startDate: e.target.value })} />
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Contract End (Optional)</label>
+                    <input type="date" className={inputClassName} value={clientForm.endDate} onChange={(e) => setClientForm({ ...clientForm, endDate: e.target.value })} />
+                 </div>
               </div>
           
-
-              <div className="modal-action">
-                <button type="button" className="btn btn-ghost" onClick={closeClientModal} disabled={isSubmitting}>Cancel</button>
-                <button type="submit" className={`btn btn-primary ${isSubmitting ? "loading" : ""}`} disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create"}
+              <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
+                <button type="button" className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" onClick={closeClientModal} disabled={isSubmitting}>Cancel</button>
+                <button type="submit" className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-sky-500 text-white hover:bg-sky-600 transition-all shadow-sm flex items-center gap-2" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create Client"}
                 </button>
               </div>
-
-              <p className="text-xs text-gray-500 mt-1">
-                Username and a temporary password will be generated automatically (username ends with @eng.client).
-              </p>
             </form>
           </div>
-
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={closeClientModal}>close</button>
-          </form>
-        </dialog>
+        </div>
       )}
 
-      {/* ---------- Project Manager Creation Modal ---------- */}
+      {/* Project Manager Modal */}
       {isProjectManagerModalOpen && (
-        <dialog open className="modal modal-open modal-bottom sm:modal-middle">
-          <div className="modal-box w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg">Create Project Manager</h3>
-              <button onClick={closeProjectManagerModal} className="btn btn-sm btn-circle btn-ghost">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeProjectManagerModal} />
+          <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 z-10 border border-slate-100 scale-in-center">
+            <div className="flex items-center gap-3 mb-6">
+               <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                  <UserPlus size={24} />
+               </div>
+               <div>
+                  <h3 className="text-2xl font-black text-slate-800 tracking-tight">Create Manager</h3>
+                  <p className="text-xs font-medium text-slate-500 mt-1">Temp credentials generated on creation.</p>
+               </div>
             </div>
 
             <form className="space-y-4" onSubmit={handleCreateProjectManager}>
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Full Name</span></label>
-                <input
-                  type="text"
-                  className="input input-bordered w-full"
-                  placeholder="Enter project manager full name"
-                  value={projectManagerForm.fullName}
-                  onChange={(e) => setProjectManagerForm({ ...projectManagerForm, fullName: e.target.value })}
-                  required
-                />
+              <div>
+                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Full Name *</label>
+                 <input type="text" className={inputClassName} placeholder="John Doe" value={projectManagerForm.fullName} onChange={(e) => setProjectManagerForm({ ...projectManagerForm, fullName: e.target.value })} required />
+              </div>
+              <div>
+                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Email *</label>
+                 <input type="email" className={inputClassName} placeholder="john@email.com" value={projectManagerForm.email} onChange={(e) => setProjectManagerForm({ ...projectManagerForm, email: e.target.value })} required />
+              </div>
+              <div>
+                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Contact Number *</label>
+                 <input type="tel" className={inputClassName} placeholder="+63 917 000 0000" value={projectManagerForm.contactNumber} onChange={(e) => setProjectManagerForm({ ...projectManagerForm, contactNumber: e.target.value })} required />
               </div>
 
-              {/* NEW: PM Email */}
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Email</span></label>
-                <input
-                  type="email"
-                  className="input input-bordered w-full"
-                  placeholder="pm@email.com"
-                  value={projectManagerForm.email}
-                  onChange={(e) => setProjectManagerForm({ ...projectManagerForm, email: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Contact Number</span></label>
-                <input
-                  type="tel"
-                  className="input input-bordered w-full"
-                  placeholder="e.g. +63 917 894-3088"
-                  value={projectManagerForm.contactNumber}
-                  onChange={(e) => setProjectManagerForm({ ...projectManagerForm, contactNumber: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div className="modal-action">
-                <button type="button" className="btn btn-ghost" onClick={closeProjectManagerModal} disabled={isSubmitting}>Cancel</button>
-                <button type="submit" className={`btn btn-secondary ${isSubmitting ? "loading" : ""}`} disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create"}
+              <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
+                <button type="button" className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" onClick={closeProjectManagerModal} disabled={isSubmitting}>Cancel</button>
+                <button type="submit" className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm flex items-center gap-2" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create Manager"}
                 </button>
               </div>
-
-              <p className="text-xs text-gray-500 mt-1">
-                Username and a temporary password will be generated automatically (username ends with @eng.pmanager).
-              </p>
             </form>
           </div>
-
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={closeProjectManagerModal}>close</button>
-          </form>
-        </dialog>
+        </div>
       )}
 
-      {/* ---------- Credentials Display Modal ---------- */}
-      {createdCreds && (
-        <dialog open className="modal modal-open modal-bottom sm:modal-middle">
-          <div className="modal-box w-full max-w-md">
-            <h3 className="font-bold text-lg mb-2">Account Created</h3>
-
-            {/* NEW: Email status badge */}
-            {"emailSent" in createdCreds ? (
-              createdCreds.emailSent ? (
-                <div className="badge badge-success mb-3">Email sent</div>
-              ) : (
-                <div className="badge mb-3">Email not sent</div>
-              )
-            ) : null}
-
-            <p className="text-sm mb-4">Share these credentials with the user:</p>
-            <div className="space-y-2">
-              <div className="font-mono text-sm">Username: {createdCreds.username || createdCreds.email}</div>
-              <div className="font-mono text-sm">Temporary Password: {createdCreds.password}</div>
-            </div>
-            <div className="modal-action">
-              <button className="btn btn-primary" onClick={() => setCreatedCreds(null)}>Done</button>
-            </div>
-          </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={() => setCreatedCreds(null)}>close</button>
-          </form>
-        </dialog>
-      )}
-
-      {/* ---------- Create Project Modal ---------- */}
+      {/* Create Project Modal */}
       {isProjectModalOpen && (
-        <dialog open className="modal modal-open modal-bottom sm:modal-middle">
-          <div className="modal-box w-full max-w-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg">Create Project</h3>
-              <button onClick={closeProjectModal} className="btn btn-sm btn-circle btn-ghost">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closeProjectModal} />
+          <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl p-8 z-10 border border-slate-100 scale-in-center max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center gap-3 mb-6">
+               <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                  <FolderPlus size={24} />
+               </div>
+               <h3 className="text-2xl font-black text-slate-800 tracking-tight">Initialize Project</h3>
             </div>
 
             <form className="space-y-4" onSubmit={handleCreateProject}>
-              {/* Client */}
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Client</span></label>
-                <select
-                  className="select select-bordered w-full"
-                  name="clientId"
-                  value={projectForm.clientId}
-                  onChange={handleProjectFieldChange}
-                  required
-                  aria-label="Select client"
-                >
-                  <option value="" disabled>Select a client</option>
-                  {clients.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.fullName || c.name} {c.email ? `(${c.email})` : ""}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Project Manager with quick-add */}
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Project Manager</span></label>
-                <div className="join w-full">
-                  <select
-                    className="select select-bordered join-item w-full"
-                    name="projectManagerId"
-                    value={projectForm.projectManagerId}
-                    onChange={handleProjectFieldChange}
-                    required
-                    aria-label="Select project manager"
-                  >
-                    <option value="" disabled>Select a project manager</option>
-                    {projectManagers.map((pm) => (
-                      <option key={pm._id} value={pm._id}>
-                        {pm.fullName || pm.name} {pm.contactNumber ? `(${pm.contactNumber})` : ""}
-                      </option>
-                    ))}
-                  </select>
-
-                  <button
-                    type="button"
-                    className="btn btn-ghost join-item"
-                    aria-label="Add new project manager"
-                    title="Add new project manager"
-                    onClick={() => setIsProjectManagerModalOpen(true)}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Contact */}
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Contact Number</span></label>
-                <input
-                  type="text"
-                  className="input input-bordered w-full"
-                  name="contactNumber"
-                  placeholder="e.g. +63 917 894-3088"
-                  value={projectForm.contactNumber}
-                  onChange={handleProjectFieldChange}
-                  required
-                />
-              </div>
-
-              {/* Location */}
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Construction Location</span></label>
-                <input
-                  type="text"
-                  className="input input-bordered w-full"
-                  name="location"
-                  placeholder="Enter construction location"
-                  value={projectForm.location}
-                  onChange={handleProjectFieldChange}
-                  required
-                />
-              </div>
-
-              {/* Description */}
-              <div className="form-control">
-                <label className="label"><span className="label-text font-medium">Construction Description / Details</span></label>
-                <textarea
-                  className="textarea textarea-bordered w-full"
-                  name="description"
-                  placeholder="Describe the construction project"
-                  rows="4"
-                  value={projectForm.description}
-                  onChange={handleProjectFieldChange}
-                  required
-                />
-              </div>
-
-              {/* Dates */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="form-control">
-                  <label className="label"><span className="label-text font-medium">Start Date</span></label>
-                  <input
-                    type="date"
-                    className="input input-bordered w-full"
-                    name="startDate"
-                    value={projectForm.startDate}
-                    onChange={handleProjectFieldChange}
-                    required
-                  />
-                </div>
-                <div className="form-control">
-                  <label className="label"><span className="label-text font-medium">Target Deadline</span></label>
-                  <input
-                    type="date"
-                    className="input input-bordered w-full"
-                    name="targetDeadline"
-                    value={projectForm.targetDeadline}
-                    onChange={handleProjectFieldChange}
-                    required
-                  />
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Assign Client *</label>
+                    <select className={`${inputClassName} cursor-pointer`} name="clientId" value={projectForm.clientId} onChange={handleProjectFieldChange} required>
+                      <option value="" disabled>Select a client</option>
+                      {clients.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.fullName || c.name} {c.email ? `(${c.email})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                 </div>
+                 
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Lead Project Manager *</label>
+                    <div className="flex gap-2">
+                      <select className={`${inputClassName} cursor-pointer flex-1`} name="projectManagerId" value={projectForm.projectManagerId} onChange={handleProjectFieldChange} required>
+                        <option value="" disabled>Select a manager</option>
+                        {projectManagers.map((pm) => (
+                          <option key={pm._id} value={pm._id}>
+                            {pm.fullName || pm.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button type="button" className="w-[52px] h-[52px] flex items-center justify-center bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-500 hover:text-white transition-colors border border-emerald-100 shadow-sm flex-shrink-0" title="Quick add manager" onClick={() => setIsProjectManagerModalOpen(true)}>
+                        <Plus size={20} strokeWidth={3} />
+                      </button>
+                    </div>
+                 </div>
+              </div>
+
+              <div>
+                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Location *</label>
+                 <input type="text" className={inputClassName} name="location" placeholder="Site address" value={projectForm.location} onChange={handleProjectFieldChange} required />
+              </div>
+
+              <div>
+                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Description *</label>
+                 <textarea className={`${inputClassName} min-h-[100px]`} name="description" placeholder="Project details and scope..." value={projectForm.description} onChange={handleProjectFieldChange} required />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Contact Number *</label>
+                   <input type="text" className={inputClassName} name="contactNumber" placeholder="+63..." value={projectForm.contactNumber} onChange={handleProjectFieldChange} required />
                 </div>
               </div>
 
-              <div className="modal-action">
-                <button type="button" className="btn btn-ghost" onClick={closeProjectModal} disabled={isSubmitting}>Cancel</button>
-                <button type="submit" className={`btn btn-primary ${isSubmitting ? "loading" : ""}`} disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create"}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Start Date *</label>
+                    <input type="date" className={inputClassName} name="startDate" value={projectForm.startDate} onChange={handleProjectFieldChange} required />
+                 </div>
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Target Deadline *</label>
+                    <input type="date" className={inputClassName} name="targetDeadline" value={projectForm.targetDeadline} onChange={handleProjectFieldChange} required />
+                 </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
+                <button type="button" className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" onClick={closeProjectModal} disabled={isSubmitting}>Cancel</button>
+                <button type="submit" className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm flex items-center gap-2" disabled={isSubmitting}>
+                  {isSubmitting ? "Initializing..." : "Initialize Project"}
                 </button>
               </div>
             </form>
           </div>
-
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={closeProjectModal}>close</button>
-          </form>
-        </dialog>
+        </div>
       )}
 
-      {/* ---------- Manage Project Managers Modal ---------- */}
+      {/* Manage PMs on Project Modal */}
       {pmChooserFor && (
-        <dialog open className="modal modal-open modal-bottom sm:modal-middle">
-          <div className="modal-box w-full max-w-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-lg">Manage Project Managers</h3>
-              <button onClick={closePMChooser} className="btn btn-sm btn-circle btn-ghost">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={closePMChooser} />
+          <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-lg p-8 z-10 border border-slate-100 scale-in-center">
+            <div className="flex items-center gap-3 mb-6">
+               <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                  <Users2 size={24} />
+               </div>
+               <h3 className="text-2xl font-black text-slate-800 tracking-tight">Assign Managers</h3>
             </div>
 
-            {/* Current Project Managers */}
-            <div className="mb-4">
-              <h4 className="font-semibold mb-2">Currently Assigned:</h4>
+            <div className="mb-8">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 ml-1">Currently Assigned</label>
               {currentProjectManagers.length === 0 ? (
-                <p className="text-sm text-gray-500">No project managers assigned yet.</p>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                   <p className="text-sm font-medium text-slate-500">No managers assigned.</p>
+                </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {currentProjectManagers.map((pmId) => {
                     const pm = projectManagers.find((p) => p._id === pmId);
                     return (
-                      <div key={pmId} className="flex items-center gap-2 badge badge-outline p-3">
+                      <div key={pmId} className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-xl border border-indigo-100 font-bold text-sm shadow-sm">
                         <span>{pm?.fullName || pm?.name || "Unknown PM"}</span>
                         <button
                           type="button"
-                          className="btn btn-ghost btn-xs text-red-500"
+                          className="w-5 h-5 flex items-center justify-center rounded-md hover:bg-indigo-200 text-indigo-400 hover:text-indigo-800 transition-colors"
                           onClick={() => handleRemovePMFromProject(pmChooserFor, pmId)}
-                          title="Remove project manager"
                         >
-                          ×
+                          <X size={14} strokeWidth={3} />
                         </button>
                       </div>
                     );
@@ -861,28 +800,26 @@ export default function SuperAdminDashboard() {
               )}
             </div>
 
-            {/* Add New Project Manager */}
-            <div className="form-control mb-4">
-              <label className="label"><span className="label-text font-medium">Add Project Manager:</span></label>
+            <div className="mb-2">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Add Manager</label>
               <div className="flex gap-2">
                 <select
-                  className="select select-bordered flex-1"
+                  className={`${inputClassName} cursor-pointer flex-1`}
                   value={pmChooserSelection}
                   onChange={(e) => setPmChooserSelection(e.target.value)}
-                  aria-label="Select project manager to add"
                 >
                   <option value="">Choose project manager...</option>
                   {projectManagers
                     .filter((pm) => !currentProjectManagers.includes(pm._id))
                     .map((pm) => (
                       <option key={pm._id} value={pm._id}>
-                        {pm.fullName || pm.name} {pm.contactNumber ? `(${pm.contactNumber})` : ""}
+                        {pm.fullName || pm.name}
                       </option>
                     ))}
                 </select>
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm disabled:opacity-50 disabled:hover:bg-indigo-600"
                   disabled={!pmChooserSelection}
                   onClick={async () => {
                     if (pmChooserSelection) {
@@ -897,46 +834,53 @@ export default function SuperAdminDashboard() {
               </div>
             </div>
 
-            <div className="modal-action">
-              <button type="button" className="btn btn-primary" onClick={closePMChooser}>
+            <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
+              <button type="button" className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors" onClick={closePMChooser}>
                 Done
               </button>
             </div>
           </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={closePMChooser}>close</button>
-          </form>
-        </dialog>
+        </div>
       )}
 
-      {/* ---------- Credentials Display Modal (again for chooser context) ---------- */}
+      {/* Credentials Created Modal */}
       {createdCreds && (
-        <dialog open className="modal modal-open modal-bottom sm:modal-middle">
-          <div className="modal-box w-full max-w-md">
-            <h3 className="font-bold text-lg mb-2">Account Created</h3>
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setCreatedCreds(null)} />
+          <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 z-10 border border-slate-100 scale-in-center text-center">
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mx-auto mb-6 shadow-inner">
+               <CheckCircle2 size={32} />
+            </div>
+            
+            <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Account Created!</h3>
+            
             {"emailSent" in createdCreds ? (
               createdCreds.emailSent ? (
-                <div className="badge badge-success mb-3">Email sent</div>
+                <div className="inline-block bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-100 mb-6">Email Automatically Sent</div>
               ) : (
-                <div className="badge mb-3">Email not sent</div>
+                <div className="inline-block bg-rose-50 text-rose-600 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border border-rose-100 mb-6">Email Delivery Failed</div>
               )
             ) : null}
 
-            <p className="text-sm mb-4">Share these credentials with the user:</p>
-            <div className="space-y-2">
-              <div className="font-mono text-sm">Username: {createdCreds.username || createdCreds.email}</div>
-              <div className="font-mono text-sm">Temporary Password: {createdCreds.password}</div>
+            <p className="text-sm font-medium text-slate-500 mb-6">Please securely share these temporary credentials with the user.</p>
+            
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left space-y-3 mb-8">
+              <div>
+                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Username</span>
+                 <span className="font-mono font-bold text-slate-800 text-sm bg-white px-3 py-1.5 rounded-lg border border-slate-200 block shadow-sm">{createdCreds.username || createdCreds.email}</span>
+              </div>
+              <div>
+                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Temp Password</span>
+                 <span className="font-mono font-bold text-slate-800 text-sm bg-white px-3 py-1.5 rounded-lg border border-slate-200 block shadow-sm">{createdCreds.password}</span>
+              </div>
             </div>
-            <div className="modal-action">
-              <button className="btn btn-primary" onClick={() => setCreatedCreds(null)}>Done</button>
-            </div>
+
+            <button className="w-full py-3.5 rounded-xl font-bold tracking-wide text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm" onClick={() => setCreatedCreds(null)}>
+               Acknowledge & Close
+            </button>
           </div>
-          <form method="dialog" className="modal-backdrop">
-            <button onClick={() => setCreatedCreds(null)}>close</button>
-          </form>
-        </dialog>
+        </div>
       )}
-    </div>
+    </main>
   );
 }

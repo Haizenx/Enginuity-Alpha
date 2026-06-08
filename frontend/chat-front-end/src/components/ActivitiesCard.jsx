@@ -63,7 +63,7 @@ const ActivitiesCard = ({ activities = [], onAdd, onDelete }) => {
   const confirmToast = (message, confirmLabel = "Remove", cancelLabel = "Cancel") =>
     new Promise((resolve) => {
       const id = toast.custom(
-        (t) => (
+        () => (
           <div className="bg-base-100 text-base-content shadow-lg rounded-md p-4 border w-[320px]">
             <p className="text-sm">{message}</p>
             <div className="mt-3 flex justify-end gap-2">

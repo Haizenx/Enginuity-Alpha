@@ -54,7 +54,7 @@ const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) =>
   const confirmToast = (message, confirmLabel = "Delete", cancelLabel = "Cancel") =>
     new Promise((resolve) => {
       const id = toast.custom(
-        (t) => (
+        () => (
           <div className="bg-base-100 text-base-content shadow-lg rounded-md p-4 border w-[320px]">
             <p className="text-sm">{message}</p>
             <div className="mt-3 flex justify-end gap-2">
@@ -133,7 +133,7 @@ const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) =>
             documents.map((doc) => {
               const id = doc._id || doc.id;
               const displayName = doc.originalName || doc.filename || doc.name || "Untitled";
-              const viewHref = `${API_BASE}/api/projects/${projectId}/documents/${id}/view`;
+              
               const downloadHref = `${API_BASE}/api/projects/${projectId}/documents/${id}/download`;
 
               return (

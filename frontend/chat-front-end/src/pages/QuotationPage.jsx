@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useCallback, useMemo} from "react";
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
@@ -11,6 +12,7 @@ import { fetchSuppliers, createSupplier, setItemSupplierPrice, updateSupplier, d
 
 const QuotationPage = () => {
   const [items, setItems] = useState([]);
+  const [activeTab, setActiveTab] = useState("materials");
   const [showAddForm, setShowAddForm] = useState(false); 
   const [showQuoteForm, setShowQuoteForm] = useState(false); 
   const [itemSearchTerm, setItemSearchTerm] = useState("");
@@ -34,7 +36,7 @@ const QuotationPage = () => {
   // --- Modal State ---
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [modalAction, setModalAction] = useState(null);
-  const [modalData, setModalData] = useState(null);
+  // const [modalData, setModalData] = useState(null);
   const [modalContent, setModalContent] = useState({ title: '', message: '', confirmText: 'Confirm' });
 
   const API_BASE_URL = window.location.hostname === 'localhost' 
@@ -116,7 +118,7 @@ const QuotationPage = () => {
   }, [isEditing, isEditingSupplier, hasUnsavedPriceChanges]);
 
   const handleAddItemTrigger = (itemPayload) => {
-    setModalData({ itemPayload });
+    // setModalData({ itemPayload });
     setModalAction(() => () => executeAddItem(itemPayload)); 
     setModalContent({
       title: "Confirm Add Item",
@@ -183,7 +185,7 @@ const QuotationPage = () => {
   };
 
   const handleDeleteSupplierTrigger = (supplier) => {
-    setModalData(supplier);
+    // setModalData(supplier);
     setModalAction(() => () => executeDeleteSupplier(supplier._id));
     setModalContent({
       title: "Confirm Delete Supplier",
@@ -266,7 +268,7 @@ const QuotationPage = () => {
     const val = parseFloat(priceInputs[itemId]);
     if (isNaN(val) || val < 0) { toast.error("Enter a valid non-negative price"); return; }
     const it = items.find(x => x && x._id === itemId);
-    setModalData({ itemId, price: val });
+    // setModalData({ itemId, price: val });
     setModalAction(() => () => handleSaveSupplierPrice(itemId));
     setModalContent({
       title: "Confirm Save Supplier Price",
@@ -277,7 +279,7 @@ const QuotationPage = () => {
   };
 
   const handleUpdateItemTrigger = (itemPayload, itemId) => {
-    setModalData({ itemPayload, itemId });
+    // setModalData({ itemPayload, itemId });
     setModalAction(() => () => executeUpdateItem(itemPayload, itemId)); 
     setModalContent({
       title: "Confirm Update Item",
@@ -309,7 +311,7 @@ const QuotationPage = () => {
         toast.error("Cannot delete item due to missing information.");
         return;
     }
-    setModalData(itemToDelete); 
+    // setModalData(itemToDelete); 
     setModalAction(() => () => executeDeleteItem(itemToDelete._id)); 
     setModalContent({
       title: "Confirm Delete Item",
@@ -362,231 +364,319 @@ const QuotationPage = () => {
     }
     setShowConfirmModal(false);
     setModalAction(null); 
-    setModalData(null);   
+    // setModalData(null);   
   };
 
   const handleModalClose = () => {
     setShowConfirmModal(false);
     setModalAction(null); 
-    setModalData(null);   
+    // setModalData(null);   
   };
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-gray-100 pt-10 md:pt-20 px-4 pb-20">
+    <main className="min-h-screen w-full bg-slate-50/50 relative py-12 px-4 sm:px-6 lg:px-8 pb-32">
       <Toaster position="top-center" reverseOrder={false} />
-      <div className="bg-white rounded-xl shadow-2xl p-6 md:p-10 w-full max-w-6xl">
-        <h1 className="text-4xl font-extrabold mb-8 text-center text-indigo-700">Construction Quotation System</h1>
+      
+      {/* Ambient Background Blobs */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-indigo-200/40 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-sky-200/40 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
+
+      <div className="max-w-[1400px] mx-auto relative z-10">
+        
+        {/* Header Section */}
+        <div className="mb-8 text-center md:text-left">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight mb-4">Quotation System</h1>
+          <p className="text-lg text-slate-500 max-w-2xl font-medium leading-relaxed">
+            Manage your master list of materials, track supplier pricing, and instantly generate professional PDF quotations for your clients.
+          </p>
+        </div>
   
-        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
+        {/* Tab Navigation */}
+        <div className="flex flex-col sm:flex-row gap-2 mb-8 bg-white/60 p-2 rounded-2xl backdrop-blur-md border border-white shadow-sm inline-flex">
           <button
-            onClick={() => { setShowAddForm(prev => !prev); setIsEditing(false); setShowQuoteForm(false); setCurrentItemToEdit(null); setIsEditingSupplier(false); }}
-            className={`btn ${showAddForm && !isEditing ? 'btn-active btn-neutral' : 'btn-primary'}`}
+            onClick={() => setActiveTab('materials')}
+            className={`px-6 py-3 rounded-xl font-bold tracking-wide text-sm transition-all shadow-sm ${
+              activeTab === 'materials' 
+                ? 'bg-indigo-600 text-white shadow-md' 
+                : 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+            }`}
           >
-            {showAddForm && !isEditing ? "Close Item Form" : "Add New Item"}
+            Master Materials
           </button>
           <button
-            onClick={() => { setShowQuoteForm(prev => !prev); setShowAddForm(false); setIsEditing(false); setCurrentItemToEdit(null); setIsEditingSupplier(false); }}
-            className={`btn ${showQuoteForm ? 'btn-active btn-neutral' : 'btn-secondary'}`}
+            onClick={() => setActiveTab('suppliers')}
+            className={`px-6 py-3 rounded-xl font-bold tracking-wide text-sm transition-all shadow-sm ${
+              activeTab === 'suppliers' 
+                ? 'bg-emerald-500 text-white shadow-md' 
+                : 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+            }`}
           >
-            {showQuoteForm ? "Close Quotation Form" : "Make Quotation"}
+            Supplier Management
           </button>
           <button
-            onClick={() => setShowAddSupplierModal(true)}
-            className="btn btn-info"
+            onClick={() => setActiveTab('quotation')}
+            className={`px-6 py-3 rounded-xl font-bold tracking-wide text-sm transition-all shadow-sm ${
+              activeTab === 'quotation' 
+                ? 'bg-sky-500 text-white shadow-md' 
+                : 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+            }`}
           >
-            Add New Supplier
+            Quotation Wizard
           </button>
         </div>
 
-        {isEditing && currentItemToEdit && (
-          <div className="my-6 p-6 border border-yellow-300 rounded-lg bg-yellow-50 shadow-md">
-            <EditItemForm
-              key={currentItemToEdit._id} 
-              itemToEdit={currentItemToEdit}
-              onItemUpdateTrigger={handleUpdateItemTrigger} 
-              onCancelEdit={handleCancelEdit}
-              isSubmitting={isLoading.action}
-            />
+        {/* Dynamic Forms Area (Appears on top if editing or adding in Materials Tab) */}
+        {activeTab === 'materials' && (
+          <div className="space-y-6 mb-8">
+            <div className="flex justify-end mb-4">
+               <button
+                onClick={() => { setShowAddForm(prev => !prev); setIsEditing(false); }}
+                className={`px-6 py-3 rounded-full font-bold tracking-wide text-sm flex items-center justify-center transition-all shadow-sm hover:-translate-y-0.5 hover:shadow-md border ${
+                  showAddForm && !isEditing 
+                    ? 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200' 
+                    : 'bg-indigo-600 text-white border-transparent hover:bg-indigo-700'
+                }`}
+              >
+                {showAddForm && !isEditing ? "Cancel Add Item" : "+ Add New Material"}
+              </button>
+            </div>
+            {isEditing && currentItemToEdit && (
+              <div className="bg-amber-50/80 backdrop-blur-md p-8 rounded-[2rem] border border-amber-200/50 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                <h2 className="text-2xl font-black text-amber-800 tracking-tight mb-6">Edit Material</h2>
+                <EditItemForm
+                  key={currentItemToEdit._id} 
+                  itemToEdit={currentItemToEdit}
+                  onItemUpdateTrigger={handleUpdateItemTrigger} 
+                  onCancelEdit={handleCancelEdit}
+                  isSubmitting={isLoading.action}
+                />
+              </div>
+            )}
+            
+            {showAddForm && !isEditing && (
+              <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-indigo-100 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                <h2 className="text-2xl font-black text-indigo-900 tracking-tight mb-6">Add New Material</h2>
+                <AddItemForm
+                  onAddItemSubmitTrigger={handleAddItemTrigger} 
+                  isSubmitting={isLoading.action}
+                  onBulkItemsAdded={fetchItems}
+                />
+              </div>
+            )}
           </div>
         )}
-        
-        {showAddForm && !isEditing && (
-          <div className="my-6 p-6 border border-green-300 rounded-lg bg-green-50 shadow-md">
-            <AddItemForm
-              onAddItemSubmitTrigger={handleAddItemTrigger} 
-              isSubmitting={isLoading.action}
-              onBulkItemsAdded={fetchItems}
-            />
+
+        {/* Tab 1: Master Materials List */}
+        {activeTab === 'materials' && (
+           <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow animate-in fade-in duration-500">
+             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+               <div className="flex items-center gap-3">
+                 <div className="w-1.5 h-8 bg-indigo-400 rounded-full"></div>
+                 <h2 className="text-3xl font-black text-slate-800 tracking-tight">Master Material List</h2>
+               </div>
+               
+               <div className="relative w-full md:w-72 group">
+                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                   <svg className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                 </div>
+                 <input
+                   type="text"
+                   placeholder="Search master list..."
+                   value={itemSearchTerm}
+                   onChange={(e) => setItemSearchTerm(e.target.value)}
+                   className="bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-full py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm w-full transition-all group-hover:border-slate-300 group-hover:bg-white"
+                 />
+               </div>
+             </div>
+             
+             {!isLoading.list && !error.list ? (
+               <ItemTable
+                 items={displayedItems}
+                 onItemEdited={handleOpenEditForm} 
+                 onItemDeleted={handleDeleteItemTrigger}
+               />
+             ) : (
+               <div className="flex flex-col items-center justify-center py-20">
+                  {isLoading.list ? (
+                    <>
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+                      <p className="text-slate-500 font-medium">Loading materials...</p>
+                    </>
+                  ) : (
+                    <div className="bg-rose-50 border border-rose-200 text-rose-700 p-6 rounded-2xl shadow-sm flex items-center gap-3">
+                      <svg className="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      <span className="font-semibold">{error.list}</span>
+                    </div>
+                  )}
+               </div>
+             )}
+           </div>
+        )}
+
+        {/* Tab 2: Supplier Management */}
+        {activeTab === 'suppliers' && (
+          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow mb-12 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-8 bg-emerald-400 rounded-full"></div>
+                <h2 className="text-3xl font-black text-slate-800 tracking-tight">Supplier Management</h2>
+              </div>
+              <button
+                onClick={() => setShowAddSupplierModal(true)}
+                className="px-6 py-3 rounded-full font-bold tracking-wide text-sm flex items-center justify-center transition-all shadow-sm hover:-translate-y-0.5 hover:shadow-md bg-emerald-500 text-white border-transparent hover:bg-emerald-600 w-full md:w-auto"
+              >
+                + Add New Supplier
+              </button>
+            </div>
+
+            <div className="flex flex-col md:flex-row items-start md:items-end gap-4 mb-8 bg-slate-50 p-6 rounded-3xl border border-slate-100">
+              <div className="w-full md:w-auto flex-1 max-w-md">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Select Supplier</label>
+                <select
+                  className="bg-white border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm w-full cursor-pointer hover:border-slate-300 transition-colors"
+                  value={selectedSupplierId}
+                  onChange={(e) => {
+                    setSelectedSupplierId(e.target.value);
+                    setIsEditingSupplier(false);
+                    setSupplierItemSearchTerm("");
+                  }}
+                >
+                  <option value="">-- Choose a supplier --</option>
+                  {suppliers.map(s => (
+                    <option key={s._id} value={s._id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              
+              {selectedSupplierId && (
+                <div className="flex gap-2 w-full md:w-auto">
+                  <button 
+                    className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex-1 md:flex-none"
+                    onClick={() => handleOpenEditSupplier(suppliers.find(s => s._id === selectedSupplierId))}
+                  >
+                    Edit Profile
+                  </button>
+                  <button 
+                    className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white transition-colors flex-1 md:flex-none"
+                    onClick={() => handleDeleteSupplierTrigger(suppliers.find(s => s._id === selectedSupplierId))}
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {currentSupplier && !isEditingSupplier && (
+              <div className="bg-emerald-50/50 border border-emerald-100 p-6 rounded-3xl mb-8 shadow-inner">
+                <h3 className="text-xl font-bold text-emerald-800 mb-4 tracking-tight">{currentSupplier.name} Profile</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                   <div>
+                     <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">Email</p>
+                     <p className="text-slate-700 font-medium">{currentSupplier.contactEmail || 'N/A'}</p>
+                   </div>
+                   <div>
+                     <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">Phone</p>
+                     <p className="text-slate-700 font-medium">{currentSupplier.contactNumber || 'N/A'}</p>
+                   </div>
+                   <div className="sm:col-span-2 lg:col-span-1">
+                     <p className="text-xs font-bold text-emerald-500 uppercase tracking-wider mb-1">Address</p>
+                     <p className="text-slate-700 font-medium">{currentSupplier.address || 'N/A'}</p>
+                   </div>
+                </div>
+              </div>
+            )}
+
+            {isEditingSupplier && supplierToEdit && (
+              <div className="bg-amber-50/80 border border-amber-200/50 p-6 rounded-3xl mb-8 shadow-inner animate-in fade-in">
+                <h3 className="text-xl font-bold text-amber-800 mb-4 tracking-tight">Edit Supplier Profile</h3>
+                <form onSubmit={handleSaveEditedSupplier} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    value={supplierToEdit.name ?? ''}
+                    onChange={(e) => setSupplierToEdit(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Supplier Name *"
+                    className="bg-white border border-amber-100 text-slate-800 font-medium text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none shadow-sm w-full"
+                    required
+                  />
+                  <input
+                    type="text"
+                    value={supplierToEdit.contactNumber ?? ''}
+                    onChange={(e) => setSupplierToEdit(prev => ({ ...prev, contactNumber: e.target.value }))}
+                    placeholder="Contact Number *"
+                    className="bg-white border border-amber-100 text-slate-800 font-medium text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none shadow-sm w-full"
+                    required
+                  />
+                  <input
+                    type="email"
+                    value={supplierToEdit.contactEmail ?? ''}
+                    onChange={(e) => setSupplierToEdit(prev => ({ ...prev, contactEmail: e.target.value }))}
+                    placeholder="Email Address (Optional)"
+                    className="bg-white border border-amber-100 text-slate-800 font-medium text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none shadow-sm w-full"
+                  />
+                  <input
+                    type="text"
+                    value={supplierToEdit.address ?? ''}
+                    onChange={(e) => setSupplierToEdit(prev => ({ ...prev, address: e.target.value }))}
+                    placeholder="Physical Address (Optional)"
+                    className="bg-white border border-amber-100 text-slate-800 font-medium text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none shadow-sm w-full"
+                  />
+                  <div className="md:col-span-2 flex justify-end gap-3 mt-2">
+                    <button type="button" className="px-6 py-2.5 rounded-xl font-bold tracking-wide text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" onClick={() => setIsEditingSupplier(false)}>
+                      Cancel
+                    </button>
+                    <button type="submit" className="px-6 py-2.5 rounded-xl font-bold tracking-wide text-sm bg-amber-500 text-white hover:bg-amber-600 transition-all shadow-sm" disabled={isLoading.action}>
+                      {isLoading.action ? 'Saving...' : 'Save Profile'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {selectedSupplierId ? (
+              <div className="mt-8 border-t border-slate-100 pt-8">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                  <h3 className="text-xl font-bold text-slate-800 tracking-tight">Set Material Prices</h3>
+                  <div className="relative w-full md:w-72 group">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Search pricing list..."
+                      value={supplierItemSearchTerm} 
+                      onChange={(e) => setSupplierItemSearchTerm(e.target.value)} 
+                      className="bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-full py-2.5 pl-10 pr-4 focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm w-full transition-all group-hover:border-slate-300 group-hover:bg-white"
+                    />
+                  </div>
+                </div>
+                
+                <SupplierItemTable
+                  items={displayedSupplierItems} 
+                  priceInputs={priceInputs}
+                  savingPriceItemId={savingPriceItemId}
+                  onPriceChange={handlePriceInputChange}
+                  onSave={handleSaveSupplierPriceTrigger}
+                />
+              </div>
+            ) : (
+              <div className="mt-8 border-t border-slate-100 pt-10 pb-4 text-center">
+                 <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                    <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                 </div>
+                 <p className="text-slate-500 font-medium text-lg">Select a supplier to manage pricing.</p>
+              </div>
+            )}
           </div>
         )}
-        
-        {showQuoteForm && (
-          <div className="my-6 p-6 border border-blue-300 rounded-lg bg-blue-50 shadow-md">
-             <h2 className="text-2xl font-semibold mb-4 text-gray-700">Create PDF Quotation</h2>
+
+        {/* Tab 3: Create Quotation */}
+        {activeTab === 'quotation' && (
+          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-sky-100 shadow-sm animate-in fade-in duration-500">
+            <h2 className="text-3xl font-black text-sky-900 tracking-tight mb-8">Quotation Wizard</h2>
             <QuotationForm items={items} projectDetails={null} onBulkItemsAdded={fetchItems} /> 
           </div>
         )}
 
-        <div className="my-10 p-6 border border-indigo-300 rounded-lg bg-white shadow-xl">
-          <h2 className="text-2xl font-extrabold mb-6 text-indigo-700">Supplier Management & Pricing</h2>
-
-          <div className="mb-6 flex flex-col md:flex-row items-start md:items-end gap-4">
-            <div>
-              <label className="label">
-                <span className="label-text font-medium">Select Supplier for Pricing</span>
-              </label>
-              <select
-                className="select select-bordered w-full md:w-64 border-indigo-400"
-                value={selectedSupplierId}
-                onChange={(e) => {
-                  setSelectedSupplierId(e.target.value);
-                  setIsEditingSupplier(false);
-                  setSupplierItemSearchTerm("");
-                }}
-              >
-                <option value="">-- Choose or Add a supplier --</option>
-                {suppliers.map(s => (
-                  <option key={s._id} value={s._id}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-            
-            {selectedSupplierId && (
-              <div className="flex gap-2">
-                <button 
-                  className="btn btn-sm btn-outline btn-info"
-                  onClick={() => handleOpenEditSupplier(suppliers.find(s => s._id === selectedSupplierId))}
-                >
-                  Edit
-                </button>
-                <button 
-                  className="btn btn-sm btn-outline btn-error"
-                  onClick={() => handleDeleteSupplierTrigger(suppliers.find(s => s._id === selectedSupplierId))}
-                >
-                  Delete
-                </button>
-              </div>
-            )}
-          </div>
-          
-          {currentSupplier && !isEditingSupplier && (
-
- <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6 shadow-sm">
-
- <h3 className="text-xl font-bold text-blue-700 mb-2">{currentSupplier.name} Details</h3>
-
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
-
-                      <p><strong>Email:</strong> {currentSupplier.contactEmail || 'N/A'}</p>
-
-                      <p><strong>Phone:</strong> {currentSupplier.contactNumber || 'N/A'}</p>
-
-                      <p className="sm:col-span-2"><strong>Address:</strong> {currentSupplier.address || 'N/A'}</p>
-
-                  </div>
-
-              </div>
-
-          )}
-
-
-
-          {isEditingSupplier && supplierToEdit && (
-            <div className="border p-4 rounded-lg bg-orange-50 mb-6 border-orange-300">
-              <h3 className="font-semibold text-lg mb-2 text-orange-700">Edit Supplier: {supplierToEdit.name}</h3>
-              <form onSubmit={handleSaveEditedSupplier} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  value={supplierToEdit.name ?? ''}
-                  onChange={(e) => setSupplierToEdit(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Supplier Name (required)"
-                  className="input input-bordered w-full"
-                  required
-                />
-                <input
-                  type="text"
-                  value={supplierToEdit.contactNumber ?? ''}
-                  onChange={(e) => setSupplierToEdit(prev => ({ ...prev, contactNumber: e.target.value }))}
-                  placeholder="Contact Phone Number (required)"
-                  className="input input-bordered w-full"
-                  required
-                />
-                <input
-                  type="email"
-                  value={supplierToEdit.contactEmail ?? ''}
-                  onChange={(e) => setSupplierToEdit(prev => ({ ...prev, contactEmail: e.target.value }))}
-                  placeholder="Contact Email (optional)"
-                  className="input input-bordered w-full"
-                />
-                <input
-                  type="text"
-                  value={supplierToEdit.address ?? ''}
-                  onChange={(e) => setSupplierToEdit(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="Supplier Address (optional)"
-                  className="input input-bordered w-full"
-                />
-                <div className="md:col-span-2 flex gap-2">
-                  <button type="submit" className="btn btn-success flex-1" disabled={isLoading.action}>
-                    {isLoading.action ? 'Updating...' : 'Save Changes'}
-                  </button>
-                  <button type="button" className="btn btn-outline btn-neutral" onClick={() => setIsEditingSupplier(false)}>
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {selectedSupplierId ? (
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold mb-4 text-gray-700">Set Prices for Selected Supplier</h3>
-              
-              <div className="flex justify-end mb-4">
-                <input
-                  type="text"
-                  placeholder="Search material name or unit..."
-                  value={supplierItemSearchTerm} 
-                  onChange={(e) => setSupplierItemSearchTerm(e.target.value)} 
-                  className="input input-bordered w-full md:max-w-xs"
-                />
-              </div>
-              
-              <SupplierItemTable
-                items={displayedSupplierItems} 
-                priceInputs={priceInputs}
-                savingPriceItemId={savingPriceItemId}
-                onPriceChange={handlePriceInputChange}
-                onSave={handleSaveSupplierPriceTrigger}
-              />
-            </div>
-          ) : (
-            <p className="text-md text-gray-600 border-t pt-4">Select a supplier from the dropdown above to view and set their item prices.</p>
-          )}
-        </div>
-
-       <div className="mt-10">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-gray-700 mb-3 md:mb-0">Available Items Master List</h2>
-            
-            <input
-              type="text"
-              placeholder="Search master list items (name/unit)..."
-              value={itemSearchTerm}
-              onChange={(e) => setItemSearchTerm(e.target.value)}
-              className="input input-bordered input-sm w-full md:max-w-xs"
-            />
-          </div>
-          
-          {!isLoading.list && !error.list ? (
-            <ItemTable
-              items={displayedItems}
-              onItemEdited={handleOpenEditForm} 
-              onItemDeleted={handleDeleteItemTrigger}
-            />
-          ) : (
-            <p className="text-center py-4">{isLoading.list ? "Loading items..." : error.list}</p>
-          )}
-        </div>
       </div>
 
       <ConfirmationModal
@@ -600,50 +690,68 @@ const QuotationPage = () => {
       />
           
       {showAddSupplierModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
-                <h3 className="text-2xl font-bold mb-4 text-indigo-700">Add New Supplier</h3>
-                <form onSubmit={handleCreateSupplier} className="grid grid-cols-1 gap-3">
-                    <input
-                        type="text"
-                        value={newSupplier.name ?? ''}
-                        onChange={(e) => setNewSupplier(prev => ({ ...prev, name: e.target.value }))}
-                        placeholder="Supplier Name (required)"
-                        className="input input-bordered w-full"
-                        required
-                    />
-                    <input
-                        type="text"
-                        value={newSupplier.contactNumber ?? ''}
-                        onChange={(e) => setNewSupplier(prev => ({ ...prev, contactNumber: e.target.value }))}
-                        placeholder="Contact Phone Number (required)"
-                        className="input input-bordered w-full"
-                        required
-                    />
-                    <input
-                        type="email"
-                        value={newSupplier.contactEmail ?? ''}
-                        onChange={(e) => setNewSupplier(prev => ({ ...prev, contactEmail: e.target.value }))}
-                        placeholder="Contact Email (optional)"
-                        className="input input-bordered w-full"
-                    />
-                    <input
-                        type="text"
-                        value={newSupplier.address ?? ''}
-                        onChange={(e) => setNewSupplier(prev => ({ ...prev, address: e.target.value }))}
-                        placeholder="Supplier Address (optional)"
-                        className="input input-bordered w-full"
-                    />
-                    <div className="flex justify-end gap-2 pt-4">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+            <div className="bg-white rounded-[2rem] shadow-2xl p-8 w-full max-w-md border border-slate-100 scale-in-center">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-800 tracking-tight">New Supplier</h3>
+                </div>
+                
+                <form onSubmit={handleCreateSupplier} className="space-y-4">
+                    <div>
+                      <input
+                          type="text"
+                          value={newSupplier.name ?? ''}
+                          onChange={(e) => setNewSupplier(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Supplier Name *"
+                          className="bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm w-full focus:bg-white transition-colors"
+                          required
+                      />
+                    </div>
+                    <div>
+                      <input
+                          type="text"
+                          value={newSupplier.contactNumber ?? ''}
+                          onChange={(e) => setNewSupplier(prev => ({ ...prev, contactNumber: e.target.value }))}
+                          placeholder="Contact Phone Number *"
+                          className="bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm w-full focus:bg-white transition-colors"
+                          required
+                      />
+                    </div>
+                    <div>
+                      <input
+                          type="email"
+                          value={newSupplier.contactEmail ?? ''}
+                          onChange={(e) => setNewSupplier(prev => ({ ...prev, contactEmail: e.target.value }))}
+                          placeholder="Email Address (Optional)"
+                          className="bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm w-full focus:bg-white transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <input
+                          type="text"
+                          value={newSupplier.address ?? ''}
+                          onChange={(e) => setNewSupplier(prev => ({ ...prev, address: e.target.value }))}
+                          placeholder="Physical Address (Optional)"
+                          className="bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm w-full focus:bg-white transition-colors"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-2">
                         <button 
                             type="button" 
-                            className="btn btn-ghost" 
+                            className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" 
                             onClick={() => setShowAddSupplierModal(false)}
                             disabled={isLoading.action}
                         >
                             Cancel
                         </button>
-                        <button type="submit" className="btn btn-primary" disabled={isLoading.action}>
+                        <button 
+                            type="submit" 
+                            className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-sm" 
+                            disabled={isLoading.action}
+                        >
                             {isLoading.action ? 'Adding...' : 'Add Supplier'}
                         </button>
                     </div>
@@ -651,7 +759,7 @@ const QuotationPage = () => {
             </div>
         </div>
       )}
-    </div>
+    </main>
   );
 };
 

@@ -99,20 +99,25 @@ const ProjectDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="skeleton h-64 w-full" />
-        <div className="max-w-[1400px] mx-auto px-4 py-6">
-          <div className="skeleton h-8 w-56 mb-4" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <div className="skeleton h-24 w-full" />
-              <div className="skeleton h-64 w-full" />
-              <div className="skeleton h-64 w-full" />
-            </div>
-            <div className="lg:col-span-1 space-y-8">
-              <div className="skeleton h-40 w-full" />
-              <div className="skeleton h-64 w-full" />
-              <div className="skeleton h-64 w-full" />
+      <div className="min-h-screen bg-slate-50/50 relative">
+        {/* Ambient Blobs */}
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-indigo-200/40 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-sky-200/40 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
+        
+        <div className="relative z-10">
+          <div className="h-72 w-full bg-slate-200/50 animate-pulse" />
+          <div className="max-w-[1400px] mx-auto px-4 py-12">
+            <div className="h-10 w-64 bg-slate-200/50 rounded-xl mb-8 animate-pulse" />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                <div className="h-32 w-full bg-white/60 backdrop-blur-sm rounded-3xl animate-pulse" />
+                <div className="h-80 w-full bg-white/60 backdrop-blur-sm rounded-3xl animate-pulse" />
+                <div className="h-80 w-full bg-white/60 backdrop-blur-sm rounded-3xl animate-pulse" />
+              </div>
+              <div className="lg:col-span-1 space-y-8">
+                <div className="h-48 w-full bg-white/60 backdrop-blur-sm rounded-3xl animate-pulse" />
+                <div className="h-80 w-full bg-white/60 backdrop-blur-sm rounded-3xl animate-pulse" />
+              </div>
             </div>
           </div>
         </div>
@@ -122,13 +127,13 @@ const ProjectDetails = () => {
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="alert alert-error max-w-md">
-            <span>Project not found.</span>
-          </div>
-          <button className="btn btn-ghost mt-4" onClick={() => navigate(-1)}>
-            Back
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 text-center max-w-md">
+          <svg className="w-16 h-16 text-rose-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">Project not found</h2>
+          <p className="text-slate-500 mb-6">The project you are looking for does not exist or has been deleted.</p>
+          <button className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-colors" onClick={() => navigate(-1)}>
+            Go Back
           </button>
         </div>
       </div>
@@ -153,23 +158,28 @@ const ProjectDetails = () => {
       : derivedPct;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ProjectHeader
-        name={displayName}
-        location={project?.location}
-        description={project?.description}
-        imageUrl={project?.imageUrl}
-        onBack={() => navigate(-1)}
-        onOpenCoverUpload={() => setIsCoverModalOpen(true)}
-      />
+    <div className="min-h-screen bg-slate-50/50 relative pb-20">
+      {/* Ambient Blobs */}
+      <div className="absolute top-80 left-0 w-[600px] h-[600px] bg-indigo-200/30 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-sky-200/30 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
 
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white rounded-lg shadow-sm p-5">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">Project Overview</h2>
-              <p className="text-gray-600">{project?.description || "No description available."}</p>
-            </div>
+      <div className="relative z-10">
+        <ProjectHeader
+          name={displayName}
+          location={project?.location}
+          description={project?.description}
+          imageUrl={project?.imageUrl}
+          onBack={() => navigate(-1)}
+          onOpenCoverUpload={() => setIsCoverModalOpen(true)}
+        />
+
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-sm border border-white p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow">
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-3">Project Overview</h2>
+                <p className="text-slate-600 leading-relaxed font-medium">{project?.description || "No description available."}</p>
+              </div>
             
             <ActivitiesCard
               activities={project?.activities || []}
@@ -243,6 +253,7 @@ const ProjectDetails = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

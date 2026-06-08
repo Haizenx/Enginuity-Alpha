@@ -73,16 +73,16 @@ const ProjectPage = () => {
   const renderProjectList = (projectsToRender, title) => {
     if (projectsToRender.length === 0) {
       return (
-        <div className="text-center p-6 bg-base-100 rounded-lg shadow">
-          <p className="text-base-content/70">No {title.toLowerCase()} found.</p>
+        <div className="text-center p-12 bg-white/40 backdrop-blur-sm rounded-3xl border border-slate-100 shadow-sm">
+          <p className="text-slate-400 font-medium text-lg">No {title.toLowerCase()} found.</p>
         </div>
       );
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
         {projectsToRender.map((project) => {
-          const coverUrl = project.imageUrl || 'https://placehold.co/600x300/222/fff?text=No+Image';
+          const coverUrl = project.imageUrl || 'https://placehold.co/600x400/f8fafc/94a3b8?text=No+Image';
           const startDate = project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A';
           const deadline = project.targetDeadline ? new Date(project.targetDeadline).toLocaleDateString() : 'N/A';
           const clientDisplay =
@@ -94,36 +94,42 @@ const ProjectPage = () => {
             <Link
               to={`/projects/${project._id}`}
               key={project._id}
-              className="block rounded-3xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-200"
-              style={{ minHeight: 180 }}
+              className="group relative block h-[320px] rounded-[2rem] overflow-hidden shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-500"
             >
+              {/* Background Image with Zoom Effect */}
               <div
-                className="relative h-40 md:h-48 w-full flex items-end"
+                className="absolute inset-0 w-full h-full bg-slate-100 group-hover:scale-105 transition-transform duration-700 ease-out"
                 style={{
                   backgroundImage: `url(${coverUrl})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
                 }}
+              />
+              {/* Soft Gradient Overlay instead of harsh black */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/80" />
+              
+              {/* Floating Delete Button */}
+              <button
+                onClick={(e) => handleDeleteProject(project._id, e)}
+                className="absolute top-4 right-4 z-20 p-2.5 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-rose-500 hover:text-white hover:scale-110 hover:shadow-lg transition-all duration-300 border border-white/20"
+                aria-label="Delete Project"
+                title="Delete Project"
               >
-                <button
-                  onClick={(e) => handleDeleteProject(project._id, e)}
-                  className="absolute top-3 right-3 z-20 p-2 bg-black/30 rounded-full text-white/80 hover:bg-red-500 hover:text-white transition-colors"
-                  aria-label="Delete Project"
-                >
-                  <Trash2 size={18} />
-                </button>
-                <div className="absolute inset-0 bg-black/40" />
-                <div className="relative z-10 p-6">
-                  <h3 className="text-white text-2xl font-semibold drop-shadow-lg mb-1">
-                    {clientDisplay}
-                  </h3>
-                  <p className="text-white/90 text-base font-medium drop-shadow mb-1">
-                    {project.location || '-'}
-                  </p>
-                  <div className="flex gap-4 text-xs text-white/80 drop-shadow">
-                    <span>Start: {startDate}</span>
-                    <span>Deadline: {deadline}</span>
-                  </div>
+                <Trash2 size={18} />
+              </button>
+
+              {/* Glassmorphic Info Card */}
+              <div className="absolute bottom-4 left-4 right-4 z-10 p-5 rounded-3xl bg-white/20 backdrop-blur-xl border border-white/30 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
+                <h3 className="text-white text-xl font-black drop-shadow-sm mb-1 truncate">
+                  {clientDisplay}
+                </h3>
+                <p className="text-white/90 text-sm font-semibold drop-shadow-sm mb-3 truncate flex items-center gap-1.5">
+                  <svg className="w-4 h-4 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  {project.location || 'No location set'}
+                </p>
+                <div className="flex justify-between items-center text-[11px] font-bold tracking-wider text-white/80 uppercase">
+                  <span className="bg-black/20 px-3 py-1.5 rounded-full border border-white/10">Start: {startDate}</span>
+                  <span className="bg-black/20 px-3 py-1.5 rounded-full border border-white/10">Due: {deadline}</span>
                 </div>
               </div>
             </Link>
@@ -134,41 +140,56 @@ const ProjectPage = () => {
   };
 
   return (
-    <>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-base-content mb-2">Projects</h1>
-        <p className="text-sm text-base-content/80">
-          Review and manage construction projects assigned to this account. Creation is handled by the Super Admin.
-        </p>
+    <main className="min-h-screen w-full bg-slate-50/50 relative py-12 px-4 sm:px-6 lg:px-8">
+      {/* Ambient Background Blobs */}
+      <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-indigo-200/40 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-sky-200/40 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
+
+      <div className="max-w-[1400px] mx-auto relative z-10">
+        <div className="mb-12">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight mb-4">Projects Portfolio</h1>
+          <p className="text-lg text-slate-500 max-w-2xl font-medium leading-relaxed">
+            Review and manage construction projects assigned to this account. Creation is handled by the Super Admin.
+          </p>
+        </div>
+
+        {isLoading && (
+          <div className="flex flex-col justify-center items-center p-20">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+            <p className="text-slate-500 font-medium">Loading portfolio...</p>
+          </div>
+        )}
+
+        {error && !isLoading && (
+          <div className="bg-rose-50 border border-rose-200 text-rose-700 p-6 rounded-2xl shadow-sm mb-8 flex items-center gap-3">
+            <svg className="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span className="font-semibold">Error! {error}</span>
+          </div>
+        )}
+
+        {!isLoading && !error && (
+          <div className="space-y-16">
+            <section>
+              <div className="flex items-center gap-3 mb-8">
+                <div className="w-2 h-8 bg-indigo-500 rounded-full"></div>
+                <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Ongoing & Upcoming</h2>
+              </div>
+              {renderProjectList(currentProjects, "Ongoing & Upcoming Projects")}
+            </section>
+
+            {finishedProjects.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="w-2 h-8 bg-slate-300 rounded-full"></div>
+                  <h2 className="text-3xl font-bold text-slate-800 tracking-tight">Finished Projects</h2>
+                </div>
+                {renderProjectList(finishedProjects, "Finished Projects")}
+              </section>
+            )}
+          </div>
+        )}
       </div>
-
-      {isLoading && (
-        <div className="flex justify-center items-center p-10">
-          <span className="loading loading-lg loading-spinner text-primary"></span>
-          <p className="ml-4 text-base-content">Loading projects...</p>
-        </div>
-      )}
-
-      {error && !isLoading && (
-        <div role="alert" className="alert alert-error shadow-lg mb-8">
-          <span>Error! {error}</span>
-        </div>
-      )}
-
-      {!isLoading && !error && (
-        <>
-          <div className="mt-8">
-            <h2 className="text-2xl font-semibold mb-6 text-base-content">Ongoing & Upcoming Projects</h2>
-            {renderProjectList(currentProjects, "Ongoing & Upcoming Projects")}
-          </div>
-
-          <div className="mt-12">
-            <h2 className="text-2xl font-semibold mb-6 text-base-content">Finished Projects</h2>
-            {renderProjectList(finishedProjects, "Finished Projects")}
-          </div>
-        </>
-      )}
-    </>
+    </main>
   );
 };
 

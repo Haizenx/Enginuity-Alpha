@@ -24,12 +24,10 @@ export const signup = async (req, res) => {
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) return res.status(400).json({ message: "Email already exists" });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const newUser = await User.create({
       fullName,
       email: normalizedEmail,
-      password: hashedPassword,
+      password,
       role,
       isActive: true,
     });
@@ -388,7 +386,7 @@ export const resetPasswordMobile = async (req, res) => {
 
     // Retrieve the user with the correct email
     const user = await User.findOne({ recoveryEmail: email.toLowerCase() });
-    
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }

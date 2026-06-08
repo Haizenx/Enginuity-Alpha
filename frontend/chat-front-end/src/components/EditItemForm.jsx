@@ -70,59 +70,46 @@ const EditItemForm = ({ itemToEdit, onItemUpdateTrigger, onCancelEdit, isSubmitt
   if (!itemToEdit) return null;
 
   return (
-    <div className="p-6 bg-white shadow-lg rounded-lg mt-6 border border-indigo-400">
-      <h2 className="text-xl font-semibold mb-4 text-indigo-700">Edit Item: <span className="font-normal italic">{itemToEdit.name}</span></h2>
-      {error && <div className="p-3 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">{error}</div>}
-      {/* Success message removed, parent will handle */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-700 px-6 py-4 rounded-2xl shadow-sm flex items-center gap-3">
+          <svg className="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span className="font-semibold">{error}</span>
+        </div>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="edit-item-name" className="block text-sm font-medium text-gray-700">Item Name</label>
+          <label htmlFor="edit-item-name" className="block text-xs font-bold text-amber-600 uppercase tracking-wider mb-2 ml-1">Item Name *</label>
           <input
             type="text" id="edit-item-name" name="name" value={item.name} onChange={handleChange} required
-            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="bg-white border border-amber-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-amber-500 outline-none shadow-sm w-full transition-colors"
           />
         </div>
         <div>
-          <label htmlFor="edit-item-unit" className="block text-sm font-medium text-gray-700">Unit</label>
+          <label htmlFor="edit-item-unit" className="block text-xs font-bold text-amber-600 uppercase tracking-wider mb-2 ml-1">Unit *</label>
           <input
             type="text" id="edit-item-unit" name="unit" value={item.unit} onChange={handleChange} required
-            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="bg-white border border-amber-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-amber-500 outline-none shadow-sm w-full transition-colors"
           />
         </div>
-        <div>
-          <label htmlFor="edit-item-materialCost" className="block text-sm font-medium text-gray-700">Material Cost</label>
-          <input
-            type="number" id="edit-item-materialCost" name="materialCost" value={item.materialCost} onChange={handleChange}
-            step="0.01" min="0" placeholder="0.00"
-            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
-          />
-        </div>
-        <div>
-          <label htmlFor="edit-item-laborCost" className="block text-sm font-medium text-gray-700">Labor Cost</label>
-          <input
-            type="number" id="edit-item-laborCost" name="laborCost" value={item.laborCost} onChange={handleChange}
-            step="0.01" min="0" placeholder="0.00"
-            className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
-          />
-        </div>
-        <div className="flex space-x-3 pt-2">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex-1 bg-indigo-600 text-white py-2.5 px-4 rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
-          >
-            {isSubmitting ? "Saving..." : "Save Changes"}
-          </button>
-          <button
-            type="button" onClick={onCancelEdit}
-            disabled={isSubmitting}
-            className="flex-1 bg-gray-300 text-gray-800 py-2.5 px-4 rounded-lg shadow-md hover:bg-gray-400 transition duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+      </div>
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <button
+          type="button" onClick={onCancelEdit}
+          disabled={isSubmitting}
+          className="px-6 py-3.5 rounded-xl font-bold tracking-wide text-sm bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors flex-1"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-6 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all text-sm tracking-wide disabled:opacity-50 disabled:hover:translate-y-0 flex-[2]"
+        >
+          {isSubmitting ? "Saving Changes..." : "Save Changes"}
+        </button>
+      </div>
+    </form>
   );
 };
 
