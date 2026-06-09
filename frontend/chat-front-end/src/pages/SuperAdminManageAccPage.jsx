@@ -387,17 +387,6 @@ const SuperAdminManageAccPage = () => {
             <Users2 size={18} />
             System Users
           </button>
-          <button
-            onClick={() => setTab("requests")}
-            className={`px-6 py-3 rounded-xl font-bold tracking-wide text-sm transition-all flex items-center gap-2 ${
-              tab === "requests" 
-                ? "bg-sky-500 text-white shadow-md" 
-                : "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-800"
-            }`}
-          >
-            <KeyRound size={18} />
-            Password Requests
-          </button>
         </div>
 
         {tab === "users" && (
@@ -514,103 +503,6 @@ const SuperAdminManageAccPage = () => {
             </div>
 
             <Pagination page={uPage} total={uTotal} limit={uLimit} onPage={setUPage} />
-          </div>
-        )}
-
-        {tab === "requests" && (
-          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-sm hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow animate-in fade-in duration-500">
-            <SectionHeader title="Password Reset Requests" subtitle="Review and fulfill password reset requests from managers.">
-              <button className="px-5 py-2.5 rounded-xl font-bold tracking-wide text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors flex items-center gap-2" onClick={fetchRequests}>
-                <RefreshCw size={16} />
-                Refresh
-              </button>
-            </SectionHeader>
-
-            <Toolbar>
-              <Select value={rStatus} onChange={(e)=>{ setRStatus(e.target.value); setRPage(1); }}>
-                <option value="pending">Pending Requests</option>
-                <option value="approved">Approved Requests</option>
-                <option value="denied">Denied Requests</option>
-              </Select>
-              <div className="ml-auto">
-                 <Select value={rLimit} onChange={(e)=>setRLimit(Number(e.target.value))}>
-                   <option value={10}>10 per page</option>
-                   <option value={20}>20 per page</option>
-                   <option value={50}>50 per page</option>
-                 </Select>
-              </div>
-            </Toolbar>
-
-            <div className="overflow-x-auto rounded-[1.5rem] border border-slate-100 shadow-sm bg-white">
-              <table className="w-full text-left whitespace-nowrap">
-                <thead className="bg-slate-50 border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-widest">
-                  <tr>
-                    <th className="py-4 px-6">Requested For</th>
-                    <th className="py-4 px-6">Email</th>
-                    <th className="py-4 px-6">Requested At</th>
-                    <th className="py-4 px-6">Status</th>
-                    <th className="py-4 px-6 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {rLoading ? (
-                    <tr>
-                      <td colSpan={5}>
-                        <div className="flex items-center justify-center py-12">
-                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-600"></div>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : reqs.length ? (
-                    reqs.map((r) => (
-                      <tr key={r._id} className="hover:bg-slate-50/50 transition-colors group">
-                        <td className="py-4 px-6 font-bold text-slate-800">{r.managerUserId?.fullName || "—"}</td>
-                        <td className="py-4 px-6 font-medium text-slate-500">{r.managerUserId?.email || "—"}</td>
-                        <td className="py-4 px-6 font-medium text-slate-600">{new Date(r.requestedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}</td>
-                        <td className="py-4 px-6">
-                           <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border ${
-                                r.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                r.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                'bg-rose-50 text-rose-600 border-rose-100'
-                           }`}>
-                              {r.status}
-                           </span>
-                        </td>
-                        <td className="py-4 px-6 text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-500 hover:text-white transition-colors shadow-sm disabled:opacity-30 disabled:hover:bg-emerald-50 disabled:hover:text-emerald-600"
-                              onClick={() => openFulfill(r)}
-                              disabled={r.status !== "pending"}
-                              title="Fulfill Request"
-                            >
-                              <Check size={14} strokeWidth={3} />
-                            </button>
-                            <button
-                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-rose-50 text-rose-600 border border-rose-100 hover:bg-rose-500 hover:text-white transition-colors shadow-sm disabled:opacity-30 disabled:hover:bg-rose-50 disabled:hover:text-rose-600"
-                              onClick={() => openDeny(r)}
-                              disabled={r.status !== "pending"}
-                              title="Deny Request"
-                            >
-                              <X size={14} strokeWidth={3} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="text-center py-12 text-slate-500 font-medium">
-                        <KeyRound className="w-8 h-8 mx-auto text-slate-300 mb-3" />
-                        No requests found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            <Pagination page={rPage} total={rTotal} limit={rLimit} onPage={setRPage} />
           </div>
         )}
 

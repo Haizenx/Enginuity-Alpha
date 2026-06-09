@@ -1,4 +1,15 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+const file = 'frontend/chat-front-end/src/components/ItemTable.jsx';
+let content = fs.readFileSync(file, 'utf8');
+
+// Change Master Material List in QuotationPage
+const qPage = 'frontend/chat-front-end/src/pages/QuotationPage.jsx';
+let qContent = fs.readFileSync(qPage, 'utf8');
+qContent = qContent.replace(/Master Material List/g, 'Materials Master List');
+fs.writeFileSync(qPage, qContent);
+
+// Add Pagination to ItemTable.jsx
+const tableRewrite = `import React, { useState } from 'react';
 import { Edit2, Trash2, Box, ChevronLeft, ChevronRight } from "lucide-react";
 
 const ItemTable = ({ items, onItemDeleted, onItemEdited }) => {
@@ -116,3 +127,7 @@ const ItemTable = ({ items, onItemDeleted, onItemEdited }) => {
 };
 
 export default ItemTable;
+`;
+
+fs.writeFileSync(file, tableRewrite);
+console.log('ItemTable rewritten');

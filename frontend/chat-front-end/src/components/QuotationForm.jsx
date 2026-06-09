@@ -550,28 +550,28 @@ const QuotationForm = ({ items, projectDetails: initialProjectDetails, onBulkIte
             <div>
               <label htmlFor="qFormProjectTitle" className="block text-xs font-bold text-indigo-500 uppercase tracking-wider mb-2 ml-1">Project Title</label>
               <input type="text" id="qFormProjectTitle" name="projectTitle"
-                value={currentQuotationProjectDetails.projectTitle} onChange={handleProjectDetailsChange}
+                value={currentQuotationProjectDetails.projectTitle} onChange={handleProjectDetailsChange} required
                 className="bg-white border border-indigo-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm w-full transition-colors"
               />
             </div>
             <div>
               <label htmlFor="qFormProjectOwner" className="block text-xs font-bold text-indigo-500 uppercase tracking-wider mb-2 ml-1">Project Owner</label>
               <input type="text" id="qFormProjectOwner" name="projectOwner"
-                value={currentQuotationProjectDetails.projectOwner} onChange={handleProjectDetailsChange}
+                value={currentQuotationProjectDetails.projectOwner} onChange={handleProjectDetailsChange} required
                 className="bg-white border border-indigo-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm w-full transition-colors"
               />
             </div>
             <div>
               <label htmlFor="qFormLocation" className="block text-xs font-bold text-indigo-500 uppercase tracking-wider mb-2 ml-1">Location</label>
               <input type="text" id="qFormLocation" name="location"
-                value={currentQuotationProjectDetails.location} onChange={handleProjectDetailsChange}
+                value={currentQuotationProjectDetails.location} onChange={handleProjectDetailsChange} required
                 className="bg-white border border-indigo-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm w-full transition-colors"
               />
             </div>
             <div>
               <label htmlFor="qFormProjectDuration" className="block text-xs font-bold text-indigo-500 uppercase tracking-wider mb-2 ml-1">Project Duration</label>
               <input type="text" id="qFormProjectDuration" name="projectDuration"
-                value={currentQuotationProjectDetails.projectDuration} onChange={handleProjectDetailsChange}
+                value={currentQuotationProjectDetails.projectDuration} onChange={handleProjectDetailsChange} required
                 className="bg-white border border-indigo-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm w-full transition-colors"
                 placeholder="e.g., 30-45 Days"
               />

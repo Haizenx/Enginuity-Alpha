@@ -38,7 +38,7 @@ export default function SuperAdminDashboard() {
     contactNumber: "",
     location: "",
     description: "",
-    startDate: "",
+    startDate: new Date().toISOString().split("T")[0],
     endDate: "",
   });
 
@@ -603,7 +603,7 @@ export default function SuperAdminDashboard() {
               
               <div>
                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Contact Number *</label>
-                 <input type="tel" className={inputClassName} placeholder="+63 917 000 0000" value={clientForm.contactNumber} onChange={(e) => setClientForm({ ...clientForm, contactNumber: e.target.value })} required />
+                 <input type="tel" className={inputClassName} placeholder="+63 917 000 0000" value={clientForm.contactNumber} onChange={(e) => setClientForm({ ...clientForm, contactNumber: e.target.value.replace(/[^0-9+\-() ]/g, "") })} required />
               </div>
 
               <div>
@@ -664,7 +664,7 @@ export default function SuperAdminDashboard() {
               </div>
               <div>
                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Contact Number *</label>
-                 <input type="tel" className={inputClassName} placeholder="+63 917 000 0000" value={projectManagerForm.contactNumber} onChange={(e) => setProjectManagerForm({ ...projectManagerForm, contactNumber: e.target.value })} required />
+                 <input type="tel" className={inputClassName} placeholder="+63 917 000 0000" value={projectManagerForm.contactNumber} onChange={(e) => setProjectManagerForm({ ...projectManagerForm, contactNumber: e.target.value.replace(/[^0-9+\-() ]/g, "") })} required />
               </div>
 
               <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-6">
@@ -694,7 +694,7 @@ export default function SuperAdminDashboard() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Assign Client *</label>
-                    <select className={`${inputClassName} cursor-pointer`} name="clientId" value={projectForm.clientId} onChange={handleProjectFieldChange} required>
+                    <select className={`${inputClassName} cursor-pointer`} name="clientId" value={projectForm.clientId} onChange={(e) => { if (e.target.name === "contactNumber") e.target.value = e.target.value.replace(/[^0-9+\-() ]/g, ""); handleProjectFieldChange(e); }} required>
                       <option value="" disabled>Select a client</option>
                       {clients.map((c) => (
                         <option key={c._id} value={c._id}>

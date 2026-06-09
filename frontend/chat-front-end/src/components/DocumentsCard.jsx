@@ -51,37 +51,9 @@ const DocumentsCard = ({ projectId, documents = [], onOpenUpload, onDelete }) =>
     }
   };
 
-  const confirmToast = (message, confirmLabel = "Delete", cancelLabel = "Cancel") =>
-    new Promise((resolve) => {
-      const id = toast.custom(
-        () => (
-          <div className="bg-base-100 text-base-content shadow-lg rounded-md p-4 border w-[320px]">
-            <p className="text-sm">{message}</p>
-            <div className="mt-3 flex justify-end gap-2">
-              <button
-                className="btn btn-ghost btn-xs"
-                onClick={() => {
-                  toast.dismiss(id);
-                  resolve(false);
-                }}
-              >
-                {cancelLabel}
-              </button>
-              <button
-                className="btn btn-error btn-xs"
-                onClick={() => {
-                  toast.dismiss(id);
-                  resolve(true);
-                }}
-              >
-                {confirmLabel}
-              </button>
-            </div>
-          </div>
-        ),
-        { duration: 8000, id: Math.random().toString(36).slice(2) }
-      );
-    });
+  const confirmToast = async (message) => {
+    return window.confirm(message);
+  };
 
   const handleDelete = async (doc) => {
     const title = doc?.originalName || doc?.filename || doc?.name || "this document";

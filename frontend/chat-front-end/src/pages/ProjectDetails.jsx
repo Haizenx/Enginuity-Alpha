@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import ProjectHeader from "../components/ProjectHeader";
 import ActivitiesCard from "../components/ActivitiesCard";
-import EmployeesCard from "../components/EmployeesCard";
 import DocumentsCard from "../components/DocumentsCard";
 import ProjectProgress from "../components/ProjectProgress";
 import UpcomingDeadlines from "../components/UpcomingDeadlines";
@@ -197,11 +196,7 @@ const ProjectDetails = () => {
                 <p className="text-slate-600 leading-relaxed font-medium">{project?.description || "No description available."}</p>
               </div>
             
-            <ActivitiesCard
-              activities={project?.activities || []}
-              onAdd={addActivityMapped}
-              onDelete={deleteActivity}
-            />
+            
 
             {/* ✨ UPDATED: The onPreview prop is removed */}
             <DocumentsCard
@@ -213,6 +208,12 @@ const ProjectDetails = () => {
           </div>
 
           <div className="lg:col-span-1 space-y-8">
+            <ActivitiesCard
+              activities={project?.activities || []}
+              onAdd={addActivityMapped}
+              onDelete={deleteActivity}
+            />
+
             <ProjectProgress progress={progressPct} completed={completedActs} total={totalActs} />
             
             <UpcomingDeadlines
@@ -220,12 +221,7 @@ const ProjectDetails = () => {
               onToggle={toggleActivityMapped}
             />
 
-            <EmployeesCard
-              employees={project?.employees || []}
-              onAdd={addEmployee}
-              onRemove={removeEmployee}
-            />
-          </div>
+                      </div>
         </div>
       </div>
 

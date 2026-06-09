@@ -9,6 +9,7 @@ import {
   getProjectById,
   assignProjectManager,
   updateProjectStatus,
+  deleteProject,
   addProjectManagers,
   removeProjectManagers,
   addActivity,
@@ -36,6 +37,8 @@ router.put("/:projectId/assign-pm", protectRoute, assignProjectManager);
 router.put("/:projectId/update-status", protectRoute, updateProjectStatus);
 router.put("/:projectId/add-pms", protectRoute, addProjectManagers);
 router.put("/:projectId/remove-pms", protectRoute, removeProjectManagers);
+
+router.delete("/:projectId", protectRoute, deleteProject);
 
 // Activities
 router.post("/:projectId/activities", protectRoute, addActivity);

@@ -472,7 +472,7 @@ const QuotationPage = () => {
              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                <div className="flex items-center gap-3">
                  <div className="w-1.5 h-8 bg-indigo-400 rounded-full"></div>
-                 <h2 className="text-3xl font-black text-slate-800 tracking-tight">Master Material List</h2>
+                 <h2 className="text-3xl font-black text-slate-800 tracking-tight">Materials Master List</h2>
                </div>
                
                <div className="relative w-full md:w-72 group">
@@ -617,7 +617,7 @@ const QuotationPage = () => {
                     type="text"
                     value={supplierToEdit.address ?? ''}
                     onChange={(e) => setSupplierToEdit(prev => ({ ...prev, address: e.target.value }))}
-                    placeholder="Physical Address (Optional)"
+                    placeholder="Physical Address (Required)" required
                     className="bg-white border border-amber-100 text-slate-800 font-medium text-sm rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none shadow-sm w-full"
                   />
                   <div className="md:col-span-2 flex justify-end gap-3 mt-2">
@@ -734,7 +734,7 @@ const QuotationPage = () => {
                           type="text"
                           value={newSupplier.address ?? ''}
                           onChange={(e) => setNewSupplier(prev => ({ ...prev, address: e.target.value }))}
-                          placeholder="Physical Address (Optional)"
+                          placeholder="Physical Address (Required)" required
                           className="bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-emerald-500 outline-none shadow-sm w-full focus:bg-white transition-colors"
                       />
                     </div>

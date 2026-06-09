@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import ConfirmationModal from "./ConfirmationModal";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -20,6 +21,7 @@ let unreadChatsCount = 0;
 
 const SideBarMain = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [unreadCount, setUnreadCount] = useState(unreadChatsCount);
   const navigate = useNavigate();
   const location = useLocation();
@@ -58,6 +60,8 @@ const SideBarMain = () => {
     storeSocket.on("message:received", handler);
     return () => storeSocket.off("message:received", handler);
   }, [storeSocket, currentUserId, location.pathname]);
+
+  const triggerLogout = () => setShowLogoutConfirm(true);
 
   const handleLogout = async () => {
     try {
@@ -99,7 +103,7 @@ const SideBarMain = () => {
   const sidebarMenuItemsOthers = [
     { key: "settings", icon: <SettingsIcon size={20} />, label: "Settings", path: "/settings" },
     { key: "profile", icon: <UsersIcon size={20} />, label: "Profile", path: "/profile" },
-    { key: "logout", icon: <LogOut size={20} />, label: "Logout", action: handleLogout },
+    { key: "logout", icon: <LogOut size={20} />, label: "Logout", action: triggerLogout },
   ];
 
   const activeClassName = "active";
@@ -214,6 +218,18 @@ const SideBarMain = () => {
           </div>
         </div>
       </div>
+    
+      {showLogoutConfirm && (
+        <ConfirmationModal
+          title="Confirm Logout"
+          message="Are you sure you want to log out of your account?"
+          onConfirm={() => {
+            setShowLogoutConfirm(false);
+            handleLogout();
+          }}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      )}
     </aside>
   );
 };
