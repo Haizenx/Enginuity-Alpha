@@ -50,8 +50,11 @@ const ChatMessage = ({ meId, msg }) => {
 const MessagesList = ({ meId, messages }) => {
   const bottomRef = useRef(null);
 
+  // Auto-scroll to bottom whenever messages change
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   return (
@@ -67,12 +70,37 @@ const MessagesList = ({ meId, messages }) => {
       {messages?.map((m) => (
         <ChatMessage key={m._id || `${m.senderId}-${m.createdAt}`} meId={meId} msg={m} />
       ))}
-      <div ref={bottomRef} />
+      <div ref={bottomRef} className="h-4" />
     </div>
   );
 };
+
+const ChatContainer = ({ selectedUser, onThreadLoaded, onMessageSent }) => {
+  const currentUser = useAuthStore((s) => s.authUser);
+  const meId = currentUser?._id;
+
+  // Use chat store for messages and real-time updates
+  const messages = useChatStore((s) => s.messages);
+  const isMessagesLoading = useChatStore((s) => s.isMessagesLoading);
+  const getMessages = useChatStore((s) => s.getMessages);
+  const setSelectedUser = useChatStore((s) => s.setSelectedUser);
+
+  // When selectedUser changes, update the store and load messages
+  useEffect(() => {
+    if (selectedUser) {
+      console.log("ChatContainer: Setting selected user:", selectedUser.fullName);
+      setSelectedUser(selectedUser);
+      
+      getMessages(selectedUser._id).then(() => {
+        // Notify parent after messages load
+        if (messages.length > 0) {
+          const last = messages[messages.length - 1];
+          const latestAt = last?.createdAt || last?.updatedAt || null;
+          if (latestAt) onThreadLoaded?.(selectedUser._id, latestAt);
+        }
+      });
     }
-  }, [selectedUser?._id]);
+  }, [selectedUser?._id, setSelectedUser, getMessages]); // Fixed dependency array
 
   // Handle message sent callback
   const handleSent = (created) => {

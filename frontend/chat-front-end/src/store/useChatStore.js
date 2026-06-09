@@ -46,7 +46,14 @@ export const useChatStore = create((set, get) => ({
     
     try {
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-      set({ messages: [...messages, res.data] });
+      set((state) => ({ 
+        messages: [...state.messages, res.data],
+        users: state.users.map(u => 
+          u._id === selectedUser._id 
+            ? { ...u, updatedAt: new Date().toISOString(), lastActivity: new Date().toISOString() } 
+            : u
+        )
+      }));
     } catch (error) {
       console.error("Send message error:", error);
       toast.error(error.response?.data?.message || "Message failed to send");
@@ -92,13 +99,27 @@ export const useChatStore = create((set, get) => ({
         (newMessage.senderId === authUser._id && newMessage.receiverId === selectedUser._id)
       );
 
+      const otherUserId = newMessage.senderId === authUser._id ? newMessage.receiverId : newMessage.senderId;
+
       if (isRelevantMessage) {
         console.log("✅ Adding message to current conversation");
         set((state) => ({
           messages: [...state.messages, newMessage],
+          users: state.users.map(u => 
+            u._id === otherUserId 
+              ? { ...u, updatedAt: new Date().toISOString(), lastActivity: new Date().toISOString() }
+              : u
+          )
         }));
       } else {
         console.log("⚠️ Message not for current conversation");
+        set((state) => ({
+          users: state.users.map(u => 
+            u._id === otherUserId 
+              ? { ...u, updatedAt: new Date().toISOString(), lastActivity: new Date().toISOString() }
+              : u
+          )
+        }));
         if (newMessage.senderId !== authUser._id) {
           toast.success("New message received!");
         }
