@@ -48,17 +48,17 @@ const ChatMessage = ({ meId, msg }) => {
 };
 
 const MessagesList = ({ meId, messages }) => {
-  const bottomRef = useRef(null);
+  const containerRef = useRef(null);
 
-  // Auto-scroll to bottom whenever messages change
+  // Auto-scroll to bottom whenever messages change without affecting window scroll
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    if (containerRef.current) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+    <div ref={containerRef} className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
       {messages?.length === 0 && (
         <div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-70">
           <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-3">
@@ -70,7 +70,6 @@ const MessagesList = ({ meId, messages }) => {
       {messages?.map((m) => (
         <ChatMessage key={m._id || `${m.senderId}-${m.createdAt}`} meId={meId} msg={m} />
       ))}
-      <div ref={bottomRef} className="h-4" />
     </div>
   );
 };
