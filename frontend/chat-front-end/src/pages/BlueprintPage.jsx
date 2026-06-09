@@ -1645,56 +1645,7 @@ ${lines.join("\n")}\n`;
                         </div>
                       </div>
                     )}
-                    {/* Related Questions */}
-                    {relatedQuestions.length > 0 && (
-                      <div className="mt-10 bg-white/50 backdrop-blur-lg rounded-[2rem] shadow-md border border-white/80 p-8">
-                        <h4 className="text-sm font-extrabold text-slate-800 mb-6 uppercase tracking-widest flex items-center">
-                          <div className="w-6 h-6 rounded bg-slate-100 text-slate-500 flex items-center justify-center mr-3 border border-slate-200">
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </div>
-                          Explore Further
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {relatedQuestions.map((question, index) => (
-                            <button
-                              key={index}
-                              type="button"
-                              onClick={() => askRelatedQuestion(question)}
-                              className="text-left w-full bg-white/60 backdrop-blur border border-white text-slate-700 px-5 py-4 rounded-2xl hover:bg-white hover:border-indigo-100 hover:text-indigo-700 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-100/50 transition-all duration-300 text-sm font-bold shadow-sm leading-relaxed group"
-                            >
-                              <div className="flex items-start justify-between">
-                                <span className="pr-2">
-                                  {question.replace(/^[\s\d\.-]*\s*/, "")}
-                                </span>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5 text-indigo-300 opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:translate-x-1"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+
                   </div>
                 )}
               </div>
