@@ -88,7 +88,6 @@ const MessageInput = ({ selectedUser, onSent }) => {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors shrink-0 \${imagePreview ? "text-indigo-600 bg-indigo-50" : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"}`}
           className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors shrink-0 ${imagePreview ? "text-indigo-600 bg-indigo-50" : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"}`}
         >
           <Image size={20} />
