@@ -60,14 +60,42 @@ const VideoCallModal = ({ currentUser, targetUser, onClose }) => {
           if (mounted) setRemoteUsers(arr => arr.filter(u => u.uid !== user.uid));
         });
 
-        const [mic, cam] = await AgoraRTC.createMicrophoneAndCameraTracks();
+        let mic = null;
+        let cam = null;
+        
+        try {
+          [mic, cam] = await AgoraRTC.createMicrophoneAndCameraTracks();
+        } catch (mediaErr) {
+          console.warn("Could not get both mic and cam, falling back...", mediaErr);
+          try {
+            mic = await AgoraRTC.createMicrophoneAudioTrack();
+          } catch (e) {
+            console.warn("No microphone available.");
+          }
+          try {
+            cam = await AgoraRTC.createCameraVideoTrack();
+          } catch (e) {
+            console.warn("No camera available.");
+          }
+        }
+        
         if (!mounted) return;
 
-        setLocalAudioTrack(mic);
-        setLocalVideoTrack(cam);
+        if (mic) setLocalAudioTrack(mic);
+        if (cam) setLocalVideoTrack(cam);
+        
+        // If no camera was found, set video disabled state so UI reflects it
+        if (!cam && mounted) setIsVideoEnabled(false);
 
         await client.join(APP_ID, channel, token, null);
-        await client.publish([mic, cam]);
+        
+        const tracksToPublish = [];
+        if (mic) tracksToPublish.push(mic);
+        if (cam) tracksToPublish.push(cam);
+        
+        if (tracksToPublish.length > 0) {
+          await client.publish(tracksToPublish);
+        }
 
         if (mounted) {
           setIsJoined(true);
