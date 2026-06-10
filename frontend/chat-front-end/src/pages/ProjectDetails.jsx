@@ -188,42 +188,38 @@ const ProjectDetails = () => {
           onOpenCoverUpload={() => setIsCoverModalOpen(true)}
         />
 
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-10">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="flex flex-col space-y-8">
             
-            {/* Left side (Big Screen for Documents & Analytics) */}
-            <div className="lg:col-span-3 space-y-8">
-              <DocumentsCard
-                projectId={projectId}
-                documents={project?.documents || []}
-                onOpenUpload={() => setIsUploadModalOpen(true)}
-                onDelete={deleteDocument}
-              />
-              
-              {/* Analytics & Deadlines moved here from the sidebar */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <ProjectProgress progress={progressPct} completed={completedActs} total={totalActs} />
-                <UpcomingDeadlines
-                  activities={project?.activities || []}
-                  onToggle={toggleActivityMapped}
-                />
-              </div>
+            {/* Project Overview */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-sm border border-white p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow">
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-3">Project Overview</h2>
+              <p className="text-slate-600 leading-relaxed font-medium">{project?.description || "No description available."}</p>
             </div>
 
-            {/* Right side (Overview and Activities) */}
-            <div className="lg:col-span-1 space-y-8">
-              <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-sm border border-white p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow">
-                <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-3">Project Overview</h2>
-                <p className="text-slate-600 leading-relaxed font-medium">{project?.description || "No description available."}</p>
-              </div>
-
-              <ActivitiesCard
+            {/* Analytics & Deadlines */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <ProjectProgress progress={progressPct} completed={completedActs} total={totalActs} />
+              <UpcomingDeadlines
                 activities={project?.activities || []}
-                onAdd={addActivityMapped}
-                onDelete={deleteActivity}
+                onToggle={toggleActivityMapped}
               />
             </div>
-            
+
+            {/* Activities & Documents */}
+            <ActivitiesCard
+              activities={project?.activities || []}
+              onAdd={addActivityMapped}
+              onDelete={deleteActivity}
+            />
+
+            <DocumentsCard
+              projectId={projectId}
+              documents={project?.documents || []}
+              onOpenUpload={() => setIsUploadModalOpen(true)}
+              onDelete={deleteDocument}
+            />
+
           </div>
         </div>
       </div>
