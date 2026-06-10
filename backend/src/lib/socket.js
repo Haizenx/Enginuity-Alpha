@@ -125,6 +125,25 @@ export function initSocketServer(httpServer, allowedOrigins) {
       if (!to) return;
       io.to(to).emit("callEnded");
     });
+
+    // Whiteboard Collaboration Relay
+    socket.on("whiteboard:draw", (payload) => {
+      const to = String(payload?.targetId || "");
+      if (!to) return;
+      io.to(to).emit("whiteboard:onDraw", payload);
+    });
+
+    socket.on("whiteboard:clear", (payload) => {
+      const to = String(payload?.targetId || "");
+      if (!to) return;
+      io.to(to).emit("whiteboard:onClear");
+    });
+
+    socket.on("whiteboard:bg", (payload) => {
+      const to = String(payload?.targetId || "");
+      if (!to) return;
+      io.to(to).emit("whiteboard:onBg", payload.bgDataUrl);
+    });
   });
 }
 

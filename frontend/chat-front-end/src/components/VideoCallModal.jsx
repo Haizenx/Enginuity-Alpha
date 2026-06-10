@@ -1,7 +1,9 @@
 // src/components/VideoCallModal.jsx
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import AgoraRTC from 'agora-rtc-sdk-ng';
-import { Phone, Mic, MicOff, Video, VideoOff, User, MonitorUp, MonitorX } from 'lucide-react'; // CHANGE: Imported Monitor icons
+import { Phone, Mic, MicOff, Video, VideoOff, User, MonitorUp, MonitorX, Edit3, Sparkles } from 'lucide-react';
+import Whiteboard from './Whiteboard';
+import { useTranscription } from '../hooks/useTranscription';
 
 import { useChatStore } from '../store/useChatStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -24,6 +26,14 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const callStartTime = useRef(null);
+
+  const [showWhiteboard, setShowWhiteboard] = useState(false);
+  const { transcript, isTranscribing } = useTranscription(isJoined);
+  const transcriptRef = useRef("");
+
+  useEffect(() => {
+    transcriptRef.current = transcript;
+  }, [transcript]);
 
   const client = useMemo(() => AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' }), []);
   const APP_ID = import.meta.env.VITE_AGORA_APP_ID;
@@ -139,6 +149,19 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
             text: `📞 Video call ended. Duration: ${timeString}`,
             receiverId: targetUser._id
           });
+
+          // Trigger AI Summary if there was enough conversation
+          const finalTranscript = transcriptRef.current;
+          if (finalTranscript.length > 50) {
+            axiosInstance.post('/gemini/summarize-call', { transcript: finalTranscript })
+              .then(res => {
+                useChatStore.getState().sendSystemMessage({
+                  text: `✨ **AI Meeting Minutes**\n\n${res.data.summary}`,
+                  receiverId: targetUser._id
+                });
+              })
+              .catch(err => console.error("AI Summary failed", err));
+          }
         } else {
           // They never joined
           useChatStore.getState().sendSystemMessage({
@@ -288,33 +311,47 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
       </div>
 
       {/* Info */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur px-6 py-3 rounded-full">
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur px-6 py-3 rounded-full z-50">
         <div className="flex items-center gap-4 text-white">
           <span className="font-medium">Call with {targetUser?.fullName || 'User'}</span>
           {isJoined && <span className="px-3 py-1 bg-green-500 rounded-full text-xs font-semibold uppercase">Connected</span>}
+          {isTranscribing && (
+            <span className="flex items-center gap-1 text-xs text-indigo-300 font-medium ml-2 border-l border-white/20 pl-4">
+              <Sparkles className="w-3 h-3" /> AI Minutes
+            </span>
+          )}
         </div>
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 bg-black/50 backdrop-blur px-6 py-4 rounded-full">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 bg-black/50 backdrop-blur px-6 py-4 rounded-full z-50">
         <button onClick={toggleMute}
                 className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30'}`}>
           {isMuted ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
         </button>
         <button onClick={toggleVideo}
-                disabled={isScreenSharing}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (!isVideoEnabled ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30')}`}>
+                disabled={isScreenSharing || showWhiteboard}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${(isScreenSharing || showWhiteboard) ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (!isVideoEnabled ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30')}`}>
           {isVideoEnabled ? <Video className="w-6 h-6 text-white" /> : <VideoOff className="w-6 h-6 text-white" />}
         </button>
         <button onClick={toggleScreenShare}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30'}`}>
+                disabled={showWhiteboard}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${showWhiteboard ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (isScreenSharing ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}>
           {isScreenSharing ? <MonitorX className="w-6 h-6 text-white" /> : <MonitorUp className="w-6 h-6 text-white" />}
+        </button>
+        <button onClick={() => setShowWhiteboard(!showWhiteboard)}
+                disabled={isScreenSharing}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (showWhiteboard ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}
+                title="Whiteboard Collab">
+          <Edit3 className="w-6 h-6 text-white" />
         </button>
         <button onClick={endCall}
                 className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center transition-all">
           <Phone className="w-6 h-6 text-white rotate-135" />
         </button>
       </div>
+
+      {showWhiteboard && <Whiteboard targetUserId={targetUser._id} onClose={() => setShowWhiteboard(false)} />}
     </div>
   );
 };
