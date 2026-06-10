@@ -38,8 +38,6 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
   const client = useMemo(() => AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' }), []);
   const APP_ID = import.meta.env.VITE_AGORA_APP_ID;
 
-  const pipStyle = { width: '176px', height: '240px' };
-
   // Main initialization effect
   useEffect(() => {
     let mounted = true;
@@ -321,10 +319,8 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
       </div>
 
       {/* Local PiP */}
-      {/* CHANGE: Added a placeholder for when video is disabled */}
       <div
-        className="absolute top-20 right-4 border-2 border-white rounded-lg overflow-hidden shadow-2xl bg-gray-900 flex items-center justify-center"
-        style={pipStyle}
+        className="absolute top-20 right-4 border-2 border-white rounded-lg overflow-hidden shadow-2xl bg-gray-900 flex items-center justify-center w-24 h-32 md:w-44 md:h-60 z-40 transition-all duration-300"
       >
         <div ref={localVideoRef} className="w-full h-full" />
         {!isVideoEnabled && (
@@ -337,43 +333,44 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
       </div>
 
       {/* Info */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur px-6 py-3 rounded-full z-50">
-        <div className="flex items-center gap-4 text-white">
-          <span className="font-medium">Call with {targetUser?.fullName || 'User'}</span>
-          {isJoined && <span className="px-3 py-1 bg-green-500 rounded-full text-xs font-semibold uppercase">Connected</span>}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur px-4 md:px-6 py-2 md:py-3 rounded-full z-50 max-w-[90vw] overflow-hidden whitespace-nowrap text-ellipsis">
+        <div className="flex items-center gap-2 md:gap-4 text-white text-sm md:text-base">
+          <span className="font-medium hidden sm:inline">Call with {targetUser?.fullName || 'User'}</span>
+          <span className="font-medium sm:hidden truncate max-w-[100px]">{targetUser?.fullName || 'User'}</span>
+          {isJoined && <span className="px-2 md:px-3 py-1 bg-green-500 rounded-full text-[10px] md:text-xs font-semibold uppercase">Connected</span>}
           {isTranscribing && (
-            <span className="flex items-center gap-1 text-xs text-indigo-300 font-medium ml-2 border-l border-white/20 pl-4">
-              <Sparkles className="w-3 h-3" /> AI Minutes
+            <span className="flex items-center gap-1 text-[10px] md:text-xs text-indigo-300 font-medium ml-1 md:ml-2 border-l border-white/20 pl-2 md:pl-4">
+              <Sparkles className="w-3 h-3" /> <span className="hidden sm:inline">AI Minutes</span>
             </span>
           )}
         </div>
       </div>
 
       {/* Controls */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4 bg-black/50 backdrop-blur px-6 py-4 rounded-full z-50">
+      <div className="absolute bottom-4 md:bottom-8 left-1/2 -translate-x-1/2 flex gap-2 md:gap-4 bg-black/50 backdrop-blur px-4 md:px-6 py-3 md:py-4 rounded-full z-50 w-[95%] sm:w-auto justify-center overflow-x-auto hide-scrollbar">
         <button onClick={toggleMute}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30'}`}>
-          {isMuted ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
+                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${isMuted ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30'}`}>
+          {isMuted ? <MicOff className="w-5 h-5 md:w-6 md:h-6 text-white" /> : <Mic className="w-5 h-5 md:w-6 md:h-6 text-white" />}
         </button>
         <button onClick={toggleVideo}
                 disabled={isScreenSharing || showWhiteboard}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${(isScreenSharing || showWhiteboard) ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (!isVideoEnabled ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30')}`}>
-          {isVideoEnabled ? <Video className="w-6 h-6 text-white" /> : <VideoOff className="w-6 h-6 text-white" />}
+                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${(isScreenSharing || showWhiteboard) ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (!isVideoEnabled ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30')}`}>
+          {isVideoEnabled ? <Video className="w-5 h-5 md:w-6 md:h-6 text-white" /> : <VideoOff className="w-5 h-5 md:w-6 md:h-6 text-white" />}
         </button>
         <button onClick={toggleScreenShare}
                 disabled={showWhiteboard}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${showWhiteboard ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (isScreenSharing ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}>
-          {isScreenSharing ? <MonitorX className="w-6 h-6 text-white" /> : <MonitorUp className="w-6 h-6 text-white" />}
+                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${showWhiteboard ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (isScreenSharing ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}>
+          {isScreenSharing ? <MonitorX className="w-5 h-5 md:w-6 md:h-6 text-white" /> : <MonitorUp className="w-5 h-5 md:w-6 md:h-6 text-white" />}
         </button>
         <button onClick={() => handleWhiteboardToggle(!showWhiteboard)}
                 disabled={isScreenSharing}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (showWhiteboard ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}
+                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (showWhiteboard ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}
                 title="Whiteboard Collab">
-          <Edit3 className="w-6 h-6 text-white" />
+          <Edit3 className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </button>
         <button onClick={endCall}
-                className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center transition-all">
-          <Phone className="w-6 h-6 text-white rotate-135" />
+                className="w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center transition-all">
+          <Phone className="w-5 h-5 md:w-6 md:h-6 text-white rotate-135" />
         </button>
       </div>
 
