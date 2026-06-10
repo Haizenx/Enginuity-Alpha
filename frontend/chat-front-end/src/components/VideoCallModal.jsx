@@ -186,23 +186,7 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
     }
   }, [remoteUsers]);
 
-  // Sync Whiteboard Toggle
-  const handleWhiteboardToggle = (isOpen) => {
-    setShowWhiteboard(isOpen);
-    const socket = useAuthStore.getState().socket;
-    if (socket) {
-      socket.emit("whiteboard:toggle", { targetId: targetUser._id, isOpen });
-    }
-  };
 
-  useEffect(() => {
-    const socket = useAuthStore.getState().socket;
-    if (socket) {
-      const onToggle = (isOpen) => setShowWhiteboard(isOpen);
-      socket.on("whiteboard:onToggle", onToggle);
-      return () => socket.off("whiteboard:onToggle", onToggle);
-    }
-  }, []);
 
   useEffect(() => {
     if (localVideoRef.current) {
@@ -276,6 +260,39 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
       console.error("Screen sharing failed", e);
     }
   };
+  
+  // Sync Whiteboard Toggle & Auto-Cast
+  const handleWhiteboardToggle = async (isOpen) => {
+    setShowWhiteboard(isOpen);
+    
+    // Sync toggle state for web-to-web clients
+    const socket = useAuthStore.getState().socket;
+    if (socket) {
+      socket.emit("whiteboard:toggle", { targetId: targetUser._id, isOpen });
+    }
+
+    if (isOpen && isCaller && !isScreenSharing) {
+      const shouldCast = window.confirm(
+        "To show this whiteboard to mobile clients, you must cast your screen.\n\n" +
+        "Click OK, then select 'Current Tab' or 'This Tab' in the upcoming prompt."
+      );
+      if (shouldCast) {
+        await toggleScreenShare();
+      }
+    } else if (!isOpen && isCaller && isScreenSharing) {
+      // Auto-stop cast when closing whiteboard
+      await stopScreenShare(screenTrack);
+    }
+  };
+
+  useEffect(() => {
+    const socket = useAuthStore.getState().socket;
+    if (socket) {
+      const onToggle = (isOpen) => setShowWhiteboard(isOpen);
+      socket.on("whiteboard:onToggle", onToggle);
+      return () => socket.off("whiteboard:onToggle", onToggle);
+    }
+  }, []);
   
   const endCall = async () => {
     try {
@@ -353,18 +370,16 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
           {isMuted ? <MicOff className="w-5 h-5 md:w-6 md:h-6 text-white" /> : <Mic className="w-5 h-5 md:w-6 md:h-6 text-white" />}
         </button>
         <button onClick={toggleVideo}
-                disabled={isScreenSharing || showWhiteboard}
-                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${(isScreenSharing || showWhiteboard) ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (!isVideoEnabled ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30')}`}>
+                disabled={isScreenSharing}
+                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (!isVideoEnabled ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30')}`}>
           {isVideoEnabled ? <Video className="w-5 h-5 md:w-6 md:h-6 text-white" /> : <VideoOff className="w-5 h-5 md:w-6 md:h-6 text-white" />}
         </button>
         <button onClick={toggleScreenShare}
-                disabled={showWhiteboard}
-                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${showWhiteboard ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (isScreenSharing ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}>
+                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30'}`}>
           {isScreenSharing ? <MonitorX className="w-5 h-5 md:w-6 md:h-6 text-white" /> : <MonitorUp className="w-5 h-5 md:w-6 md:h-6 text-white" />}
         </button>
         <button onClick={() => handleWhiteboardToggle(!showWhiteboard)}
-                disabled={isScreenSharing}
-                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (showWhiteboard ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}
+                className={`w-12 h-12 md:w-14 md:h-14 shrink-0 rounded-full flex items-center justify-center transition-all ${showWhiteboard ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30'}`}
                 title="Whiteboard Collab">
           <Edit3 className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </button>
