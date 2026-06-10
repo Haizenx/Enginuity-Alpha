@@ -89,13 +89,14 @@ const MessageInput = ({ selectedUser, onSent }) => {
           type="button"
           onClick={() => fileInputRef.current?.click()}
           className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors shrink-0 \${imagePreview ? "text-indigo-600 bg-indigo-50" : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"}`}
+          className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors shrink-0 ${imagePreview ? "text-indigo-600 bg-indigo-50" : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"}`}
         >
           <Image size={20} />
         </button>
 
         <input
           className="flex-1 bg-transparent border-0 focus:ring-0 text-slate-800 px-2 placeholder:text-slate-400 outline-none w-full"
-          placeholder={`Message \${selectedUser?.fullName || "user"}...`}
+          placeholder={selectedUser?.fullName ? `Message ${selectedUser.fullName}...` : "Type a message..."}
           value={text}
           onChange={(e) => setText(e.target.value)}
         />

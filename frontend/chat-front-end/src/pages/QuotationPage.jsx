@@ -392,7 +392,7 @@ const QuotationPage = () => {
         </div>
   
         {/* Tab Navigation */}
-        <div className="flex flex-col sm:flex-row gap-2 mb-8 bg-white/60 p-2 rounded-2xl backdrop-blur-md border border-white shadow-sm inline-flex">
+        <div className="flex flex-col sm:flex-row gap-2 mb-8 bg-white/60 p-2 rounded-2xl backdrop-blur-md border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] inline-flex items-center">
           <button
             onClick={() => setActiveTab('materials')}
             className={`px-6 py-3 rounded-xl font-bold tracking-wide text-sm transition-all shadow-sm ${
@@ -401,7 +401,7 @@ const QuotationPage = () => {
                 : 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-800'
             }`}
           >
-            Master Materials
+            Material Master List
           </button>
           <button
             onClick={() => setActiveTab('suppliers')}
@@ -413,15 +413,23 @@ const QuotationPage = () => {
           >
             Supplier Management
           </button>
+
+          {/* Vertical Divider */}
+          <div className="hidden sm:block w-px h-8 bg-slate-200 mx-2"></div>
+
           <button
             onClick={() => setActiveTab('quotation')}
-            className={`px-6 py-3 rounded-xl font-bold tracking-wide text-sm transition-all shadow-sm ${
+            className={`px-8 py-3 rounded-xl font-black tracking-widest uppercase text-sm transition-all relative overflow-hidden group ${
               activeTab === 'quotation' 
-                ? 'bg-sky-500 text-white shadow-md' 
-                : 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] border-none scale-[1.02]' 
+                : 'bg-slate-800 text-white hover:bg-slate-900 shadow-md border-none'
             }`}
           >
-            Quotation Wizard
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+            <span className="relative z-10 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+              Quotation Wizard
+            </span>
           </button>
         </div>
 
@@ -472,7 +480,7 @@ const QuotationPage = () => {
              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                <div className="flex items-center gap-3">
                  <div className="w-1.5 h-8 bg-indigo-400 rounded-full"></div>
-                 <h2 className="text-3xl font-black text-slate-800 tracking-tight">Materials Master List</h2>
+                 <h2 className="text-3xl font-black text-slate-800 tracking-tight">Material Master List</h2>
                </div>
                
                <div className="relative w-full md:w-72 group">
