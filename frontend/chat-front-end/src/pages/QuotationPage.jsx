@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState, useCallback, useMemo} from "react";
+import { useLocation } from "react-router-dom";
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 import AddItemForm from "../components/AddItemForm"; 
@@ -11,8 +12,9 @@ import ConfirmationModal from '../components/ConfirmationModal';
 import { fetchSuppliers, createSupplier, setItemSupplierPrice, updateSupplier, deleteSupplier } from "../services/supplierService"; 
 
 const QuotationPage = () => {
+  const location = useLocation();
   const [items, setItems] = useState([]);
-  const [activeTab, setActiveTab] = useState("materials");
+  const [activeTab, setActiveTab] = useState(location.state?.fromBlueprint ? "quotation" : "materials");
   const [showAddForm, setShowAddForm] = useState(false); 
   const [showQuoteForm, setShowQuoteForm] = useState(false); 
   const [itemSearchTerm, setItemSearchTerm] = useState("");
@@ -671,10 +673,9 @@ const QuotationPage = () => {
         )}
 
         {/* Tab 3: Create Quotation */}
-        {activeTab === 'quotation' && (
-          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-sky-100 shadow-sm animate-in fade-in duration-500">
-            <h2 className="text-3xl font-black text-sky-900 tracking-tight mb-8">Quotation Wizard</h2>
-            <QuotationForm items={items} projectDetails={null} onBulkItemsAdded={fetchItems} /> 
+        {activeTab === "quotation" && (
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <QuotationForm items={items} projectDetails={location.state?.projectDetails || null} initialSupplierId={location.state?.recommendedSupplierId || ""} />
           </div>
         )}
 

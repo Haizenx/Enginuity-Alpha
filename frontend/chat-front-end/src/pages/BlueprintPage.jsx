@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";import { GoogleGenerativeAI } from "@google/generative-ai";
 import { axiosInstance } from "../lib/axios";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -226,6 +226,7 @@ const renderTableSection = (content, header) => {
 
 const BlueprintPage = () => {
   // --- STATE MANAGEMENT ---
+  const navigate = useNavigate();
 
   const [image, setImage] = useState(null);
 
@@ -245,6 +246,9 @@ const BlueprintPage = () => {
   const [newHistoryName, setNewHistoryName] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+
+  const [isQuotationModalOpen, setIsQuotationModalOpen] = useState(false);
+  const [quotationModalData, setQuotationModalData] = useState({ matched: [], unmatched: [], projectDetails: {}, recommendedSupplier: "" });
 
   // Collapsible Sections State
   const [collapsedSections, setCollapsedSections] = useState({
@@ -644,7 +648,173 @@ const BlueprintPage = () => {
     if (lines.length === 0) return "";
     return `\n**Available Supplier Catalog (PH Prices):** Prioritize recommending from these offers ONLY.
 ${lines.join("\n")}\n`;
-  }, [includeSupplierCatalog, itemsCatalog, suppliers]); // --- HELPER FUNCTIONS ---
+  }, [includeSupplierCatalog, itemsCatalog, suppliers]); 
+  
+  const fuzzyMatch = (str1, str2) => {
+    if (!str1 || !str2) return false;
+    const s1 = str1.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const s2 = str2.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (s1 === s2) return true;
+    
+    const tokens1 = str1.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+    const tokens2 = str2.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+    
+    let matchCount = 0;
+    for (const t1 of tokens1) {
+      if (tokens2.some(t2 => t2.includes(t1) || t1.includes(t2))) matchCount++;
+    }
+    const ratio = matchCount / Math.max(tokens1.length, tokens2.length);
+    return ratio >= 0.5; // Accept if 50% tokens match
+  };
+
+  const parseMaterialsMarkdown = (md) => {
+    if (!md) return [];
+    const lines = md.split('\n').filter(line => line.includes('|'));
+    if (lines.length < 3) return [];
+    
+    const headerLine = lines.find(l => l.toLowerCase().includes('material'));
+    if (!headerLine) return [];
+    
+    const headers = headerLine.split('|').map(h => h.trim().toLowerCase());
+    const nameIdx = headers.findIndex(h => h.includes('material'));
+    const qtyIdx = headers.findIndex(h => h.includes('quantity') || h.includes('qty'));
+    
+    const separatorIdx = lines.findIndex(l => l.includes('---'));
+    const dataLines = separatorIdx !== -1 ? lines.slice(separatorIdx + 1) : lines.slice(1);
+    
+    const extracted = [];
+    dataLines.forEach(line => {
+       const cols = line.split('|').map(c => c.trim());
+       if (cols.length > Math.max(nameIdx, qtyIdx)) {
+          const name = cols[nameIdx]?.replace(/\*\*/g, '');
+          const qtyStr = qtyIdx !== -1 && cols[qtyIdx] ? cols[qtyIdx] : "1";
+          const qty = parseFloat(qtyStr.replace(/[^\d.]/g, '')) || 1;
+          if (name && name !== '' && !name.toLowerCase().includes('total')) {
+             extracted.push({ name, quantity: qty, originalName: name });
+          }
+       }
+    });
+    return extracted;
+  };
+
+  const parseProjectDetails = (text) => {
+     if (!text) return {};
+     const details = {};
+     text.split('\n').forEach(line => {
+       const lower = line.toLowerCase();
+       if (lower.includes('project title:')) details.projectTitle = line.split(':')[1]?.trim()?.replace(/\*\*/g, '') || '';
+       if (lower.includes('location:')) details.location = line.split(':')[1]?.trim()?.replace(/\*\*/g, '') || '';
+       if (lower.includes('project duration:')) details.projectDuration = line.split(':')[1]?.trim()?.replace(/\*\*/g, '') || '';
+     });
+     return details;
+  };
+
+  const handleMakeQuotation = () => {
+    if (!parsedSections?.materials) {
+      toast.error("No materials found in the analysis.");
+      return;
+    }
+    
+    const extractedMaterials = parseMaterialsMarkdown(parsedSections.materials);
+    
+    let recommendedSupplierId = "";
+    let recommendedSupplierName = "";
+    if (parsedSections.conclusion) {
+       const lines = parsedSections.conclusion.split('\n');
+       for (const line of lines) {
+         if (line.toUpperCase().includes('RECOMMENDED SUPPLIER:')) {
+            recommendedSupplierName = line.split(':')[1]?.trim()?.replace(/\*\*/g, '');
+            break;
+         }
+       }
+    }
+    
+    if (recommendedSupplierName) {
+       const matchedSupplier = suppliers.find(s => fuzzyMatch(s.name, recommendedSupplierName));
+       if (matchedSupplier) {
+          recommendedSupplierId = matchedSupplier._id;
+       }
+    }
+    
+    const projectDetails = parseProjectDetails(parsedSections.projectDetails || parsedSections.description);
+    
+    const matched = [];
+    const unmatched = [];
+    
+    extractedMaterials.forEach(em => {
+       const match = itemsCatalog.find(item => fuzzyMatch(item.name, em.name));
+       if (match) {
+          matched.push({ catalogItem: match, quantity: em.quantity });
+       } else {
+          unmatched.push(em);
+       }
+    });
+
+    setQuotationModalData({
+       matched,
+       unmatched,
+       projectDetails,
+       recommendedSupplierId,
+       recommendedSupplierName
+    });
+    
+    setIsQuotationModalOpen(true);
+  };
+
+  const proceedToQuotation = () => {
+     const quantities = {};
+     quotationModalData.matched.forEach(m => {
+        quantities[m.catalogItem._id] = m.quantity;
+     });
+     
+     localStorage.setItem('autoAddQuotationItems', JSON.stringify(quantities));
+     
+     navigate('/quotation', { 
+       state: { 
+         fromBlueprint: true,
+         recommendedSupplierId: quotationModalData.recommendedSupplierId,
+         projectDetails: quotationModalData.projectDetails
+       } 
+     });
+  };
+
+  const handleModalQuantityChange = (itemId, newQuantity) => {
+     const num = parseFloat(newQuantity) || 0;
+     setQuotationModalData(prev => {
+        const updatedMatched = prev.matched.map(m => 
+           m.catalogItem._id === itemId ? { ...m, quantity: num } : m
+        );
+        return { ...prev, matched: updatedMatched };
+     });
+  };
+
+  const handleQuickCreateItem = async (unmatchedItem, index) => {
+     try {
+       const res = await axiosInstance.post('/items', {
+          name: unmatchedItem.name,
+          unit: "pc" // Defaulting to piece
+       });
+       toast.success(`${unmatchedItem.name} added to catalog!`);
+       
+       const newItem = res.data;
+       setQuotationModalData(prev => {
+          const newUnmatched = [...prev.unmatched];
+          newUnmatched.splice(index, 1);
+          return {
+             ...prev,
+             unmatched: newUnmatched,
+             matched: [...prev.matched, { catalogItem: newItem, quantity: unmatchedItem.quantity }]
+          };
+       });
+       
+       // Refresh catalog silently
+       axiosInstance.get('/items').then(res => setItemsCatalog(res.data)).catch(console.error);
+     } catch (e) {
+       toast.error(`Failed to create ${unmatchedItem.name}`);
+     }
+  };
+
+  // --- HELPER FUNCTIONS ---
 
   const formatFileSize = (bytes) => {
     if (bytes === 0) return "0 Bytes";
@@ -689,6 +859,7 @@ ${lines.join("\n")}\n`;
   const parseResponseIntoSections = (responseText) => {
     const sections = {
       description: "",
+      projectDetails: "",
       recommendations: "",
       budget: "",
       materials: "",
@@ -712,6 +883,15 @@ ${lines.join("\n")}\n`;
         if (currentContent.length > 0) {
           sections[currentSection] = currentContent.join("\n").trim();
         }
+      } else if (
+        trimmedLine.match(/^\*\*PROJECT DETAILS\*\*:?/i) ||
+        trimmedLine.toLowerCase().includes("project details:")
+      ) {
+        if (currentContent.length > 0) {
+          sections[currentSection] = currentContent.join("\n").trim();
+        }
+        currentSection = "projectDetails";
+        currentContent = [];
       } else if (
         trimmedLine.match(/^\*\*ANALYSIS\*\*:?/i) ||
         trimmedLine.toLowerCase().includes("analysis:") ||
@@ -860,6 +1040,12 @@ Please structure your response with the following precise engineering section he
 **DESCRIPTION:**
 Provide a professional, highly descriptive executive summary (maximum 3 sentences) of the document. Identify the drawing type, scope, and primary architectural intent. Tailor the terminology to Philippine engineering standards.
 
+**PROJECT DETAILS:**
+Extract or intelligently infer the following information based on the query or blueprint context (if completely unknown, write N/A):
+- Project Title: 
+- Location: 
+- Project Duration: 
+
 **ANALYSIS:**
 Perform a structured, highly concise architectural and structural analysis using a bulleted list. Detail the spatial breakdown, load-bearing indicators, room layouts, and key structural elements. Focus on Philippine standards (e.g., ventilation, structural integrity against natural disasters). Note any critical observations or clash detection zones.
 
@@ -867,7 +1053,7 @@ ${costConstraint}
 
 **MATERIALS & RECOMMENDATIONS:**
 IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Recommend high-quality, sustainable materials and construction methodologies suitable for the Philippine climate. 
-The table columns MUST be: **| Material Name | Chosen Supplier | Reason/Justification |**
+The table columns MUST be: **| Material Name | Quantity | Unit | Chosen Supplier | Reason/Justification |**
 You may suggest industry-standard alternatives if specific materials are not in the provided database.
 
 **SUPPLIER COMPARISON:**
@@ -884,7 +1070,8 @@ Include a FINAL ROW for the **Grand Total Estimated Cost**.
 ${textPrompt.trim() ? `Also consider this specific client request: "${textPrompt.trim()}".` : ""} ${additionalContextForAI} ${supplierCatalogContext}
 
 **CONCLUSION:**
-Deliver your final expert recommendation. Choose EXACTLY ONE supplier as the final recommendation for the entire project phase and justify your choice based on total cost, sustainability, and logistics. Do NOT recommend mixing suppliers. If the client asked a specific question, address it directly at the beginning of the conclusion. Limit to 5 sentences.`;
+Deliver your final expert recommendation. Choose EXACTLY ONE supplier as the final recommendation for the entire project phase and justify your choice based on total cost, sustainability, and logistics. Do NOT recommend mixing suppliers. If the client asked a specific question, address it directly at the beginning of the conclusion. Limit to 5 sentences.
+IMPORTANT: You MUST explicitly declare the recommended supplier in the first line of the conclusion EXACTLY like this: "**RECOMMENDED SUPPLIER:** [Supplier Name]"`;
 
       const geminiResult = await model.generateContent([fullPrompt, imagePart]);
 
@@ -950,9 +1137,15 @@ Deliver your final expert recommendation. Choose EXACTLY ONE supplier as the fin
       const prompt = `As a construction and architectural expert, provide a concise recommendation or answer based on the following user query about construction. Focus on practical advice, sustainable practices, or cost-effectiveness within the **Philippine context**.
             ${costConstraint}
 
+            **PROJECT DETAILS:**
+            Extract or intelligently infer the following information based on the query (if completely unknown, write N/A):
+            - Project Title: 
+            - Location: 
+            - Project Duration:
+
             **MATERIALS & RECOMMENDATIONS:**
             IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters).
-            The table columns MUST be: **| Material Name | Chosen Supplier | Reason/Justification |**
+            The table columns MUST be: **| Material Name | Quantity | Unit | Chosen Supplier | Reason/Justification |**
             - You MAY suggest materials beyond the supplier catalog.
 
             **SUPPLIER COMPARISON:**
@@ -968,6 +1161,7 @@ Deliver your final expert recommendation. Choose EXACTLY ONE supplier as the fin
 
             **CONCLUSION:**
             Choose EXACTLY ONE supplier as the final recommendation for this project and state WHY (e.g., best total cost, sustainability, logistics). Do NOT recommend mixing suppliers. Keep it to 2-4 sentences. 
+            IMPORTANT: You MUST explicitly declare the recommended supplier in the first line of the conclusion EXACTLY like this: "**RECOMMENDED SUPPLIER:** [Supplier Name]"
 
             User Query: "${promptToUse.trim()}" ${additionalContextForAI} ${supplierCatalogContext}`;
 
@@ -1364,6 +1558,15 @@ Deliver your final expert recommendation. Choose EXACTLY ONE supplier as the fin
                           Analysis Report
                         </h3>
                       </div>
+                      <button
+                        onClick={handleMakeQuotation}
+                        className="print:hidden flex items-center space-x-2 bg-emerald-50 text-emerald-700 border border-emerald-200 px-4 py-2 rounded-xl hover:bg-emerald-100 transition-colors shadow-sm font-bold text-sm mr-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>Make a Quotation</span>
+                      </button>
                       <button
                         onClick={() => setIsPdfModalOpen(true)}
                         className="print:hidden flex items-center space-x-2 bg-indigo-50 text-indigo-700 border border-indigo-200 px-4 py-2 rounded-xl hover:bg-indigo-100 transition-colors shadow-sm font-bold text-sm"
@@ -1942,40 +2145,111 @@ Deliver your final expert recommendation. Choose EXACTLY ONE supplier as the fin
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200 text-center">
             <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-5">
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
-              Delete Analysis?
-            </h3>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Delete Analysis?</h3>
             <p className="text-slate-500 mb-8">
-              Are you sure you want to delete this analysis from your history?
-              This action cannot be undone.
+              Are you sure you want to delete this analysis from your history? This action cannot be undone.
             </p>
             <div className="flex justify-center space-x-4">
-              <button
-                onClick={() => setDeleteModalOpen(false)}
-                className="px-6 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-6 py-2.5 rounded-xl font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm"
-              >
-                Delete
-              </button>
+              <button onClick={() => setDeleteModalOpen(false)} className="px-6 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 transition-colors">Cancel</button>
+              <button onClick={confirmDelete} className="px-6 py-2.5 rounded-xl font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-sm">Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Review Quotation Modal */}
+      {isQuotationModalOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-3xl w-full max-h-[90vh] shadow-2xl flex flex-col animate-in zoom-in-95 duration-200">
+            <h2 className="text-2xl font-black text-slate-800 mb-2">Review & Adjust Quotation</h2>
+            <p className="text-sm text-slate-500 mb-6 border-b pb-4 border-slate-100">
+              We've matched the AI's recommendations with your master catalog. Review the items and quantities before transferring them to the Quotation Maker.
+            </p>
+            
+            <div className="flex-grow overflow-y-auto space-y-6 pr-2 custom-scrollbar">
+               
+               {/* Auto-detected details */}
+               <div className="bg-sky-50 border border-sky-100 p-4 rounded-2xl flex flex-col md:flex-row gap-4 justify-between text-sm">
+                  <div>
+                    <span className="font-bold text-sky-800 block mb-1">Recommended Supplier:</span>
+                    <span className="text-slate-700 font-medium">{quotationModalData.recommendedSupplierName || "Not explicitly declared"}</span>
+                  </div>
+                  <div>
+                    <span className="font-bold text-sky-800 block mb-1">Project:</span>
+                    <span className="text-slate-700 font-medium">{quotationModalData.projectDetails?.projectTitle || "N/A"}</span>
+                  </div>
+               </div>
+
+               {/* Matched Items */}
+               <div>
+                  <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-emerald-500 rounded-full"></span> 
+                    Matched Items ({quotationModalData.matched.length})
+                  </h3>
+                  {quotationModalData.matched.length === 0 ? (
+                     <p className="text-sm text-slate-500 italic bg-slate-50 p-4 rounded-xl">No items matched automatically.</p>
+                  ) : (
+                     <div className="space-y-2">
+                       {quotationModalData.matched.map((m, idx) => (
+                          <div key={m.catalogItem._id} className="flex items-center justify-between bg-white border border-slate-200 p-3 rounded-xl shadow-sm">
+                             <div>
+                               <div className="font-bold text-slate-800 text-sm">{m.catalogItem.name}</div>
+                               <div className="text-xs text-slate-500">{m.catalogItem.unit || 'Unit not set'}</div>
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <label className="text-xs font-bold text-slate-500">QTY:</label>
+                               <input type="number" value={m.quantity} min="0" step="1"
+                                 onChange={(e) => handleModalQuantityChange(m.catalogItem._id, e.target.value)}
+                                 className="w-16 border border-slate-200 rounded-lg px-2 py-1 text-center font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                               />
+                             </div>
+                          </div>
+                       ))}
+                     </div>
+                  )}
+               </div>
+
+               {/* Unmatched Items */}
+               {quotationModalData.unmatched.length > 0 && (
+                 <div>
+                    <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2">
+                      <span className="w-2 h-2 bg-amber-500 rounded-full"></span> 
+                      Unmatched Recommendations ({quotationModalData.unmatched.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {quotationModalData.unmatched.map((um, idx) => (
+                         <div key={idx} className="flex items-center justify-between bg-amber-50 border border-amber-100 p-3 rounded-xl">
+                            <div>
+                              <div className="font-bold text-amber-900 text-sm">{um.name}</div>
+                              <div className="text-xs text-amber-700">AI suggested quantity: {um.quantity}</div>
+                            </div>
+                            <button 
+                              onClick={() => handleQuickCreateItem(um, idx)}
+                              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-xs shadow-sm transition-colors"
+                            >
+                              + Quick Add
+                            </button>
+                         </div>
+                      ))}
+                    </div>
+                 </div>
+               )}
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-6 mt-4 border-t border-slate-100">
+               <button onClick={() => setIsQuotationModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors">
+                 Cancel
+               </button>
+               <button onClick={proceedToQuotation} className="px-6 py-2.5 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2">
+                 Proceed to Quotation Maker 
+                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                 </svg>
+               </button>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect, useMemo } from "react";
 import { compareQuotation } from "../services/quotationService";
+import toast from "react-hot-toast";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ConfirmationModal from './ConfirmationModal';
@@ -9,7 +10,7 @@ import { fetchSuppliers } from "../services/supplierService";
 // --- Font Embedding (Optional) ---
 const NOTO_SANS_REGULAR_BASE64 = ""; // Leave empty or remove if not embedding
 
-const QuotationForm = ({ items, projectDetails: initialProjectDetails, onBulkItemsAdded }) => {
+const QuotationForm = ({ items, projectDetails: initialProjectDetails, initialSupplierId, onBulkItemsAdded }) => {
   const [quantities, setQuantities] = useState({});
   const [suppliers, setSuppliers] = useState([]);
   const [selectedSupplierId, setSelectedSupplierId] = useState("");
@@ -35,6 +36,33 @@ const QuotationForm = ({ items, projectDetails: initialProjectDetails, onBulkIte
       console.error("Failed to parse saved percentages from localStorage", error);
     }
   }, []);
+
+  // Pre-fill quantities if autoAddQuotationItems is present
+  useEffect(() => {
+    const autoAdd = localStorage.getItem('autoAddQuotationItems');
+    if (autoAdd && Array.isArray(items) && items.length > 0) {
+      try {
+        const parsedQuantities = JSON.parse(autoAdd);
+        if (Object.keys(parsedQuantities).length > 0) {
+          setQuantities(parsedQuantities);
+          toast.success("Items from AI Analysis added successfully!", { duration: 3000 });
+        }
+      } catch (e) {
+        console.error("Failed to parse autoAddQuotationItems", e);
+      }
+      localStorage.removeItem('autoAddQuotationItems');
+    }
+  }, [items]);
+
+  useEffect(() => {
+    if (initialSupplierId && suppliers.length > 0) {
+      // Validate that the supplier exists
+      const exists = suppliers.some(s => s._id === initialSupplierId);
+      if (exists) {
+         setSelectedSupplierId(initialSupplierId);
+      }
+    }
+  }, [initialSupplierId, suppliers]);
 
   const defaultProjectDetails = {
     projectTitle: 'Sample Project Title',
