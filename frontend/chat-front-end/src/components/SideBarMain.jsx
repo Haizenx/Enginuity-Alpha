@@ -221,13 +221,14 @@ const SideBarMain = () => {
     
       {showLogoutConfirm && (
         <ConfirmationModal
+          isOpen={true}
           title="Confirm Logout"
           message="Are you sure you want to log out of your account?"
           onConfirm={() => {
             setShowLogoutConfirm(false);
             handleLogout();
           }}
-          onCancel={() => setShowLogoutConfirm(false)}
+          onClose={() => setShowLogoutConfirm(false)}
         />
       )}
     </aside>

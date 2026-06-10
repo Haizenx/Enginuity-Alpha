@@ -73,6 +73,12 @@ app.use(
     origin(origin, callback) {
       if (!origin) return callback(null, true); // allow server-to-server/local tools
       if (allowedOrigins.includes(origin)) return callback(null, true);
+      
+      // Allow local network IP addresses for mobile/iPad testing
+      if (/^http:\/\/(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)[0-9]+(:[0-9]+)?$/.test(origin)) {
+        return callback(null, true);
+      }
+      
       return callback(new Error("CORS: origin not allowed"), false);
     },
     credentials: true, // allow cookies for JWT auth
