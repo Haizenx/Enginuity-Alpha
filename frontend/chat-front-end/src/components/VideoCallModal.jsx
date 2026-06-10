@@ -1,7 +1,7 @@
 // src/components/VideoCallModal.jsx
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import AgoraRTC from 'agora-rtc-sdk-ng';
-import { Phone, Mic, MicOff, Video, VideoOff, User } from 'lucide-react'; // CHANGE: Imported User icon
+import { Phone, Mic, MicOff, Video, VideoOff, User, MonitorUp, MonitorX } from 'lucide-react'; // CHANGE: Imported Monitor icons
 
 import { useChatStore } from '../store/useChatStore';
 import { useAuthStore } from '../store/useAuthStore';
@@ -18,6 +18,8 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenTrack, setScreenTrack] = useState(null);
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -112,6 +114,7 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
       mounted = false;
       (async () => {
         try {
+          screenTrack?.stop(); screenTrack?.close();
           localAudioTrack?.stop(); localAudioTrack?.close();
           localVideoTrack?.stop(); localVideoTrack?.close();
           client.removeAllListeners();
@@ -125,46 +128,7 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
   }, [client, currentUser._id, targetUser._id]);
 
   useEffect(() => {
-    // Only set start time once remote user joins so duration reflects actual talk time
-    if (remoteUsers.length > 0 && !callStartTime.current) {
-      callStartTime.current = Date.now();
-    }
-  }, [remoteUsers]);
-
-  useEffect(() => {
-    if (localVideoTrack && localVideoRef.current) {
-      localVideoTrack.play(localVideoRef.current);
-    }
     return () => {
-      localVideoTrack?.stop();
-    };
-  }, [localVideoTrack]);
-
-  const toggleMute = async () => {
-    if (localAudioTrack) {
-      const nextMuted = !isMuted;
-      await localAudioTrack.setEnabled(!nextMuted);
-      setIsMuted(nextMuted);
-    }
-  };
-
-  const toggleVideo = async () => {
-    if (localVideoTrack) {
-      const nextEnabled = !isVideoEnabled;
-      await localVideoTrack.setEnabled(nextEnabled);
-      setIsVideoEnabled(nextEnabled);
-    }
-  };
-  
-  const endCall = async () => {
-    try {
-      // 1. Notify other party via socket
-      const socket = useAuthStore.getState().socket;
-      if (socket) {
-        socket.emit("call:end", { targetId: targetUser._id });
-      }
-
-      // 2. Compute Duration & Send Log (Caller ONLY prevents duplicates)
       if (isCaller) {
         if (callStartTime.current) {
           const durationMs = Date.now() - callStartTime.current;
@@ -183,8 +147,99 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
           });
         }
       }
+    };
+  }, [isCaller, targetUser._id]);
 
-      // 3. Cleanup Agora
+  useEffect(() => {
+    // Only set start time once remote user joins so duration reflects actual talk time
+    if (remoteUsers.length > 0 && !callStartTime.current) {
+      callStartTime.current = Date.now();
+    }
+  }, [remoteUsers]);
+
+  useEffect(() => {
+    if (localVideoRef.current) {
+      if (isScreenSharing && screenTrack) {
+        screenTrack.play(localVideoRef.current);
+      } else if (localVideoTrack) {
+        localVideoTrack.play(localVideoRef.current);
+      }
+    }
+    return () => {
+      localVideoTrack?.stop();
+      screenTrack?.stop();
+    };
+  }, [localVideoTrack, screenTrack, isScreenSharing]);
+
+  const toggleMute = async () => {
+    if (localAudioTrack) {
+      const nextMuted = !isMuted;
+      await localAudioTrack.setEnabled(!nextMuted);
+      setIsMuted(nextMuted);
+    }
+  };
+
+  const toggleVideo = async () => {
+    if (localVideoTrack) {
+      const nextEnabled = !isVideoEnabled;
+      await localVideoTrack.setEnabled(nextEnabled);
+      setIsVideoEnabled(nextEnabled);
+    }
+  };
+
+  const stopScreenShare = async (trackToStop) => {
+    if (trackToStop) {
+      try {
+        await client.unpublish(trackToStop);
+        trackToStop.stop();
+        trackToStop.close();
+      } catch (e) {
+        console.error("Error stopping screen track:", e);
+      }
+    }
+    setScreenTrack(null);
+    setIsScreenSharing(false);
+    
+    // Re-publish camera if video is enabled
+    if (localVideoTrack && isVideoEnabled) {
+      await client.publish(localVideoTrack);
+    }
+  };
+
+  const toggleScreenShare = async () => {
+    try {
+      if (!isScreenSharing) {
+        const screenVideoTrack = await AgoraRTC.createScreenVideoTrack({ encoderConfig: "1080p_1" }, "disable");
+        
+        screenVideoTrack.on("track-ended", async () => {
+          await stopScreenShare(screenVideoTrack);
+        });
+
+        if (localVideoTrack) {
+          await client.unpublish(localVideoTrack);
+        }
+        await client.publish(screenVideoTrack);
+        
+        setScreenTrack(screenVideoTrack);
+        setIsScreenSharing(true);
+      } else {
+        await stopScreenShare(screenTrack);
+      }
+    } catch (e) {
+      console.error("Screen sharing failed", e);
+    }
+  };
+  
+  const endCall = async () => {
+    try {
+      // 1. Notify other party via socket
+      const socket = useAuthStore.getState().socket;
+      if (socket) {
+        socket.emit("call:end", { targetId: targetUser._id });
+      }
+
+      // 2. Cleanup Agora
+      screenTrack?.stop(); screenTrack?.close();
       localAudioTrack?.stop(); localAudioTrack?.close();
       localVideoTrack?.stop(); localVideoTrack?.close();
       client.removeAllListeners();
@@ -247,8 +302,13 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
           {isMuted ? <MicOff className="w-6 h-6 text-white" /> : <Mic className="w-6 h-6 text-white" />}
         </button>
         <button onClick={toggleVideo}
-                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${!isVideoEnabled ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30'}`}>
+                disabled={isScreenSharing}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (!isVideoEnabled ? 'bg-red-600 hover:bg-red-700' : 'bg-white/20 hover:bg-white/30')}`}>
           {isVideoEnabled ? <Video className="w-6 h-6 text-white" /> : <VideoOff className="w-6 h-6 text-white" />}
+        </button>
+        <button onClick={toggleScreenShare}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30'}`}>
+          {isScreenSharing ? <MonitorX className="w-6 h-6 text-white" /> : <MonitorUp className="w-6 h-6 text-white" />}
         </button>
         <button onClick={endCall}
                 className="w-14 h-14 rounded-full bg-red-600 hover:bg-red-700 flex items-center justify-center transition-all">
