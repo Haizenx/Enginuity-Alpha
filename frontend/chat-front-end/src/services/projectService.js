@@ -1,6 +1,6 @@
 // src/services/projectService.js
 
-import { API_ENDPOINTS, defaultHeaders } from '../config/api';
+import { axiosInstance } from '../lib/axios';
 
 // Mock data for development
 const mockProject = {
@@ -48,30 +48,17 @@ const mockProject = {
   ]
 };
 
-const handleResponse = async (response) => {
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
-  }
-  return response.json();
-};
-
 // Development mode check
 const isDevelopment = window.location.hostname === 'localhost';
 
 export const getProjectDetails = async (id) => {
   try {
     if (isDevelopment) {
-      // Return mock data in development
       console.log('Using mock data for development');
       return mockProject;
     }
-
-    const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${id}`, {
-      method: 'GET',
-      headers: defaultHeaders,
-    });
-    return await handleResponse(response);
+    const response = await axiosInstance.get(`/projects/${id}`);
+    return response.data;
   } catch (error) {
     console.error('Error fetching project details:', error);
     throw error;
@@ -81,19 +68,15 @@ export const getProjectDetails = async (id) => {
 export const uploadDocument = async (id, formData) => {
   try {
     if (isDevelopment) {
-      // Mock successful upload
       console.log('Mock document upload:', formData.get('file'));
       return { success: true, id: Math.random().toString(36).substr(2, 9) };
     }
-
-    const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${id}/documents`, {
-      method: 'POST',
-      body: formData,
+    const response = await axiosInstance.post(`/projects/${id}/documents`, formData, {
       headers: {
-        'Accept': 'application/json',
-      },
+        'Content-Type': 'multipart/form-data'
+      }
     });
-    return await handleResponse(response);
+    return response.data;
   } catch (error) {
     console.error('Error uploading document:', error);
     throw error;
@@ -103,27 +86,20 @@ export const uploadDocument = async (id, formData) => {
 export const deleteDocument = async (projectId, docId) => {
   try {
     if (isDevelopment) {
-      // Mock successful deletion
       console.log('Mock document deletion:', docId);
       return { success: true };
     }
-
-    const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${projectId}/documents/${docId}`, {
-      method: 'DELETE',
-      headers: defaultHeaders,
-    });
-    return await handleResponse(response);
+    const response = await axiosInstance.delete(`/projects/${projectId}/documents/${docId}`);
+    return response.data;
   } catch (error) {
     console.error('Error deleting document:', error);
     throw error;
   }
 };
 
-// New functions for managing project activities
 export const addProjectActivity = async (projectId, activity) => {
   try {
     if (isDevelopment) {
-      // Mock successful activity addition
       const newActivity = {
         id: Math.random().toString(36).substr(2, 9),
         ...activity
@@ -131,13 +107,8 @@ export const addProjectActivity = async (projectId, activity) => {
       mockProject.activities.push(newActivity);
       return newActivity;
     }
-
-    const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${projectId}/activities`, {
-      method: 'POST',
-      headers: defaultHeaders,
-      body: JSON.stringify(activity),
-    });
-    return await handleResponse(response);
+    const response = await axiosInstance.post(`/projects/${projectId}/activities`, activity);
+    return response.data;
   } catch (error) {
     console.error('Error adding activity:', error);
     throw error;
@@ -147,7 +118,6 @@ export const addProjectActivity = async (projectId, activity) => {
 export const updateProjectActivity = async (projectId, activityId, updates) => {
   try {
     if (isDevelopment) {
-      // Mock successful activity update
       const activityIndex = mockProject.activities.findIndex(a => a.id === activityId);
       if (activityIndex !== -1) {
         mockProject.activities[activityIndex] = {
@@ -157,13 +127,8 @@ export const updateProjectActivity = async (projectId, activityId, updates) => {
       }
       return mockProject.activities[activityIndex];
     }
-
-    const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${projectId}/activities/${activityId}`, {
-      method: 'PATCH',
-      headers: defaultHeaders,
-      body: JSON.stringify(updates),
-    });
-    return await handleResponse(response);
+    const response = await axiosInstance.patch(`/projects/${projectId}/activities/${activityId}`, updates);
+    return response.data;
   } catch (error) {
     console.error('Error updating activity:', error);
     throw error;
@@ -173,16 +138,11 @@ export const updateProjectActivity = async (projectId, activityId, updates) => {
 export const deleteProjectActivity = async (projectId, activityId) => {
   try {
     if (isDevelopment) {
-      // Mock successful activity deletion
       mockProject.activities = mockProject.activities.filter(a => a.id !== activityId);
       return { success: true };
     }
-
-    const response = await fetch(`${API_ENDPOINTS.PROJECTS}/${projectId}/activities/${activityId}`, {
-      method: 'DELETE',
-      headers: defaultHeaders,
-    });
-    return await handleResponse(response);
+    const response = await axiosInstance.delete(`/projects/${projectId}/activities/${activityId}`);
+    return response.data;
   } catch (error) {
     console.error('Error deleting activity:', error);
     throw error;

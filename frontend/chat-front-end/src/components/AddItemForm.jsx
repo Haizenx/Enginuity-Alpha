@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import ConfirmationModal from './ConfirmationModal';
 import Papa from 'papaparse'; // Assumes you have run 'npm install papaparse'
+import { axiosInstance } from "../lib/axios";
 
 // --- CSV Parsing Function (using PapaParse) ---
 const parseCSV = (file) => {
@@ -90,11 +91,8 @@ const AddItemForm = ({ onAddItemSubmitTrigger, isSubmitting, onBulkItemsAdded })
   useEffect(() => {
     const load = async () => {
       try {
-        const API_BASE_URL = window.location.hostname === 'localhost' 
-          ? 'http://localhost:5001/api'
-          : 'https://enginuity-alpha.onrender.com/api';
-        const res = await fetch(`${API_BASE_URL}/suppliers`);
-        const data = await res.json();
+        const res = await axiosInstance.get(`/suppliers`);
+        const data = res.data;
         setSuppliers(Array.isArray(data) ? data : []);
       } catch (e) {
         console.error(e);
@@ -186,21 +184,15 @@ const AddItemForm = ({ onAddItemSubmitTrigger, isSubmitting, onBulkItemsAdded })
         
         try {
             // 1. Create/Update Item
-            const createdRes = await fetch(`${API_BASE_URL}/items`, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-            });
-            const created = await createdRes.json();
-            if (!createdRes.ok) throw new Error(created?.message || 'Failed to create item.');
+            const createdRes = await axiosInstance.post(`/items`, payload);
+            const created = createdRes.data;
             const createdId = created?._id || created?.id;
             successCount++;
 
             // 2. Add Supplier Price
             const priceVal = Number(row.price);
             if (selectedSupplierId && createdId && !isNaN(priceVal) && priceVal >= 0) {
-                await fetch(`${API_BASE_URL}/items/${createdId}/supplier-price`, {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ supplierId: selectedSupplierId, price: priceVal })
-                });
+                await axiosInstance.post(`/items/${createdId}/supplier-price`, { supplierId: selectedSupplierId, price: priceVal });
             }
         } catch (err) {
             console.error(`Error saving item ${row.name}:`, err);

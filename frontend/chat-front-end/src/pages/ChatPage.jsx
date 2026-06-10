@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import ChatContainer from "../components/ChatContainer";
 import toast from "react-hot-toast";
 import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline"; // Icon for empty state
+import { axiosInstance } from "../lib/axios";
 
 const API_BASE = import.meta.env.VITE_BACKEND_URL || "http://localhost:5001";
 
@@ -26,25 +27,8 @@ const ChatPage = () => {
     (async () => {
       setLoadingUsers(true);
       try {
-        const res = await fetch(`${API_BASE}/api/messages/users`, {
-          signal, // Pass the signal to the fetch request
-          method: "GET",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        });
-
-        if (!res.ok) {
-          let errorMsg = "Failed to load users";
-          try {
-            const errorData = await res.json();
-            errorMsg = errorData?.message || errorData?.error || errorMsg;
-          } catch {
-            // response was not json
-          }
-          throw new Error(errorMsg);
-        }
-
-        const data = await res.json();
+        const res = await axiosInstance.get("/messages/users", { signal });
+        const data = res.data;
         const list = Array.isArray(data) ? data : [];
         const enriched = list.map((u) => ({ ...u, lastActivity: u.lastActivity || u.updatedAt || u.createdAt || null }));
         setUsers(enriched);

@@ -5,6 +5,7 @@ import { Phone, Mic, MicOff, Video, VideoOff, User } from 'lucide-react'; // CHA
 
 import { useChatStore } from '../store/useChatStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { axiosInstance } from "../lib/axios";
 
 const API_BASE = import.meta.env.VITE_BACKEND_URL || '';
 
@@ -35,20 +36,12 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
       try {
         if (!APP_ID) throw new Error('Missing VITE_AGORA_APP_ID');
 
-        const chRes = await fetch(`${API_BASE}/api/video/agora/channel`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userA: currentUser._id, userB: targetUser._id })
-        });
-        const { channel } = await chRes.json();
+        const chRes = await axiosInstance.post(`/video/agora/channel`, { userA: currentUser._id, userB: targetUser._id });
+        const channel = chRes.data.channel;
         if (!channel) throw new Error('No channel returned');
 
-        const tokRes = await fetch(`${API_BASE}/api/video/agora/token`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ channel, uid: 0, role: 'publisher', expireSeconds: 3600 })
-        });
-        const { token, appId } = await tokRes.json();
+        const tokRes = await axiosInstance.post(`/video/agora/token`, { channel, uid: 0, role: 'publisher', expireSeconds: 3600 });
+        const { token, appId } = tokRes.data;
         if (!token || !appId) throw new Error('Invalid token response');
 
         client.on('user-published', async (user, mediaType) => {
