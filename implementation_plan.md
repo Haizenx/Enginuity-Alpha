@@ -1,26 +1,20 @@
-# Video Call Screen Sharing & Post-Call Message Fix
+# Real-Time Collaboration Fixes & Enhancements
 
 ## Goal
-Fix the missing post-call duration message and add Screen Sharing functionality to the Video Call modal so users (like Project Managers) can share blueprints during a call.
+Fix the screen sharing and whiteboard visibility issues, and enhance the whiteboard so both users can collaborate seamlessly with distinct pen colors.
 
 ## Proposed Changes
 
-### 1. Fix Post-Call Message
-- **File:** `frontend/chat-front-end/src/components/VideoCallModal.jsx`
-- **Issue:** The post-call message was only being sent when the *caller* manually clicked the "End Call" button. If the *receiver* ended the call, the modal just closed and no message was sent.
-- **Fix:** Move the `sendSystemMessage` logic into a `useEffect` cleanup function for the caller. This guarantees that whenever the call ends (regardless of who clicked "End Call"), the caller's app will calculate the duration and send the message to the chat exactly once.
+### 1. Fix Whiteboard Sync & Auto-Open
+- **Issue:** The doodle wasn't showing for the other user because the Whiteboard overlay doesn't open automatically for them. Also, strokes are only visible if both users happen to have the whiteboard open at the same time.
+- **Fix:** 
+  - Add a new `whiteboard:toggle` socket event. When one user clicks the whiteboard icon, it will automatically open (or close) the whiteboard on the other person's screen so they are immediately looking at the same thing.
+  - Pass `isCaller` to the `<Whiteboard>` component to automatically assign distinct pen colors: Red for the Project Manager (Caller) and Blue for the Client (Receiver), making it easy to see who drew what.
 
-### 2. Implement Screen Sharing
-- **File:** `frontend/chat-front-end/src/components/VideoCallModal.jsx`
-- **Addition:** Add a "Share Screen" button to the control bar.
-- **Logic:** 
-  - Use `AgoraRTC.createScreenVideoTrack()` when the user clicks the button.
-  - Temporarily unpublish the local camera video track and publish the screen track to the channel so the remote user sees the screen.
-  - Listen for the browser's native "Stop Sharing" event to automatically revert back to the camera track.
-  - Update the UI to highlight when screen sharing is active.
-
-## Open Questions
-- Do you want the screen share to completely replace your camera feed for the other person, or would you prefer a more complex layout where they see both your screen and your face? (Replacing the camera feed with the screen share is the standard, most reliable approach).
+### 2. Fix Screen Share Not Showing
+- **Issue:** When switching from Camera to Screen Share, the Agora SDK `user-published` event fires, but the new screen track might fail to attach to the remote video container properly due to React's re-rendering of the DOM or the previous camera's `<video>` element blocking it.
+- **Fix:** 
+  - Refactor how remote video tracks are played. Instead of playing the track directly inside the socket event listener, use a React `useEffect` that monitors the `remoteUsers` array. Whenever the remote user's video track updates (like switching to screen share), it will explicitly clear the video container and play the new track safely.
 
 ## User Review Required
-Please review the proposed plan and let me know if you approve or if you have any feedback on the open questions!
+Please review these fixes. Once approved, I will implement them so your whiteboard auto-syncs, your pen colors are different, and the screen share displays flawlessly for the client!

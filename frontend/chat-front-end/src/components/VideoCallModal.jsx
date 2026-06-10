@@ -58,7 +58,6 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
 
         client.on('user-published', async (user, mediaType) => {
           await client.subscribe(user, mediaType);
-          if (mediaType === 'video' && remoteVideoRef.current) user.videoTrack?.play(remoteVideoRef.current);
           if (mediaType === 'audio') user.audioTrack?.play();
           if (mounted) setRemoteUsers(arr => [...arr.filter(u => u.uid !== user.uid), user]);
         });
@@ -178,7 +177,34 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
     if (remoteUsers.length > 0 && !callStartTime.current) {
       callStartTime.current = Date.now();
     }
+
+    // Safely play the remote video track when it changes
+    if (remoteVideoRef.current && remoteUsers.length > 0) {
+      const user = remoteUsers[0]; // 1-on-1 call
+      if (user.videoTrack) {
+        remoteVideoRef.current.innerHTML = ''; // Clear stale tracks
+        user.videoTrack.play(remoteVideoRef.current);
+      }
+    }
   }, [remoteUsers]);
+
+  // Sync Whiteboard Toggle
+  const handleWhiteboardToggle = (isOpen) => {
+    setShowWhiteboard(isOpen);
+    const socket = useAuthStore.getState().socket;
+    if (socket) {
+      socket.emit("whiteboard:toggle", { targetId: targetUser._id, isOpen });
+    }
+  };
+
+  useEffect(() => {
+    const socket = useAuthStore.getState().socket;
+    if (socket) {
+      const onToggle = (isOpen) => setShowWhiteboard(isOpen);
+      socket.on("whiteboard:onToggle", onToggle);
+      return () => socket.off("whiteboard:onToggle", onToggle);
+    }
+  }, []);
 
   useEffect(() => {
     if (localVideoRef.current) {
@@ -339,7 +365,7 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
                 className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${showWhiteboard ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (isScreenSharing ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}>
           {isScreenSharing ? <MonitorX className="w-6 h-6 text-white" /> : <MonitorUp className="w-6 h-6 text-white" />}
         </button>
-        <button onClick={() => setShowWhiteboard(!showWhiteboard)}
+        <button onClick={() => handleWhiteboardToggle(!showWhiteboard)}
                 disabled={isScreenSharing}
                 className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${isScreenSharing ? 'bg-gray-600 opacity-50 cursor-not-allowed' : (showWhiteboard ? 'bg-indigo-500 hover:bg-indigo-600 shadow-lg shadow-indigo-500/50' : 'bg-white/20 hover:bg-white/30')}`}
                 title="Whiteboard Collab">
@@ -351,7 +377,7 @@ const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
         </button>
       </div>
 
-      {showWhiteboard && <Whiteboard targetUserId={targetUser._id} onClose={() => setShowWhiteboard(false)} />}
+      {showWhiteboard && <Whiteboard isCaller={isCaller} targetUserId={targetUser._id} onClose={() => handleWhiteboardToggle(false)} />}
     </div>
   );
 };

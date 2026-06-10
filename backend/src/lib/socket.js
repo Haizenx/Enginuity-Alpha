@@ -62,6 +62,7 @@ export function initSocketServer(httpServer, allowedOrigins) {
       methods: ["GET", "POST"],
       credentials: true,
     },
+    maxHttpBufferSize: 1e8, // 100 MB for large PDF/image syncs
   });
 
   io.on("connection", (socket) => {
@@ -143,6 +144,24 @@ export function initSocketServer(httpServer, allowedOrigins) {
       const to = String(payload?.targetId || "");
       if (!to) return;
       io.to(to).emit("whiteboard:onBg", payload.bgDataUrl);
+    });
+
+    socket.on("whiteboard:toggle", (payload) => {
+      const to = String(payload?.targetId || "");
+      if (!to) return;
+      io.to(to).emit("whiteboard:onToggle", payload.isOpen);
+    });
+
+    socket.on("whiteboard:scroll", (payload) => {
+      const to = String(payload?.targetId || "");
+      if (!to) return;
+      io.to(to).emit("whiteboard:onScroll", payload.scrollTop);
+    });
+
+    socket.on("whiteboard:pdf", (payload) => {
+      const to = String(payload?.targetId || "");
+      if (!to) return;
+      io.to(to).emit("whiteboard:onPdf", payload.pdfDataUrl);
     });
   });
 }
