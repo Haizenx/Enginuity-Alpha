@@ -266,7 +266,6 @@ const ProjectDetails = () => {
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };
