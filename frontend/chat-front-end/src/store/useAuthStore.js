@@ -101,6 +101,7 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: res.data });
       get().connectSocket();
     } catch (error) {
+      localStorage.removeItem("enginuity_token");
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -111,6 +112,7 @@ export const useAuthStore = create((set, get) => ({
     set({ isSigningUp: true });
     try {
       const res = await axiosInstance.post("/auth/signup", data);
+      if (res.data?.token) localStorage.setItem("enginuity_token", res.data.token);
       set({ authUser: res.data });
       toast.success("Account created successfully");
       get().connectSocket();
@@ -125,6 +127,7 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoggingIn: true });
     try {
       const res = await axiosInstance.post("/auth/login", data);
+      if (res.data?.token) localStorage.setItem("enginuity_token", res.data.token);
       set({ authUser: res.data });
       toast.success("Logged in successfully");
       get().connectSocket();
@@ -141,11 +144,13 @@ export const useAuthStore = create((set, get) => ({
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");
+      localStorage.removeItem("enginuity_token");
       set({ authUser: null });
       get().disconnectSocket();
       toast.success("Logged out successfully");
     } catch (error) {
       console.error("Logout error:", error);
+      localStorage.removeItem("enginuity_token");
       set({ authUser: null });
       get().disconnectSocket();
     }
@@ -160,11 +165,14 @@ export const useAuthStore = create((set, get) => ({
       socket.disconnect();
     }
   
-    // Get JWT token from cookie
-    const token = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('token='))
-      ?.split('=')[1];
+    // Get JWT token from localStorage fallback to cookie
+    let token = localStorage.getItem("enginuity_token");
+    if (!token) {
+      token = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
+    }
   
     console.log("Connecting socket with token:", !!token);
   

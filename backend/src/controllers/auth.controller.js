@@ -41,7 +41,7 @@ export const signup = async (req, res) => {
       email: newUser.email,
       role: newUser.role,
       profilePic: newUser.profilePic,
-      token: platform === "mobile" ? token : undefined, // ⭐ Return token for mobile
+      token: token, // ⭐ Return token for all platforms to bypass Safari iPad cookie issues
     });
   } catch (error) {
     console.error("❌ Signup error:", error.message);
@@ -132,7 +132,7 @@ export const login = async (req, res) => {
       profilePic: user.profilePic,
       permissions: userRole === "superadmin" ? user.permissions : undefined,
       lastLogin: user.lastLogin,
-      token: platform === "mobile" ? token : undefined,
+      token: token,
     });
   } catch (error) {
     console.error("❌ Login error:", error.message);

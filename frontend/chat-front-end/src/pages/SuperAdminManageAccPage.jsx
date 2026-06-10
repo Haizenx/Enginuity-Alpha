@@ -14,7 +14,8 @@ import {
   Unlock,
   Trash2,
   KeyRound,
-  UserPlus
+  UserPlus,
+  CheckCircle2
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -81,11 +82,10 @@ const Pagination = ({ page, total, limit, onPage }) => {
 };
 
 // Create user modal
-const CreateUserModal = ({ open, onClose, onCreated }) => {
+const CreateUserModal = ({ open, onClose, onCreated, setCreatedCreds }) => {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("project_manager");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -93,26 +93,40 @@ const CreateUserModal = ({ open, onClose, onCreated }) => {
       setFullName("");
       setEmail("");
       setRole("project_manager");
-      setPassword("");
       setLoading(false);
     }
   }, [open]);
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!fullName || !email || !password || !role) {
+    if (!fullName || !email || !role) {
       return toast.error("Please fill in all fields.");
     }
     setLoading(true);
     try {
-      const { data } = await axiosInstance.post("/admin/users", {
+      const endpoint = role === "project_manager" ? "/users/create-pm-auto" : "/users/create-client-auto";
+      const { data } = await axiosInstance.post(endpoint, {
         fullName,
         email,
-        role,
-        password,
-        isActive: true,
+        contactNumber: "Pending", // Temp value as the schema might expect it
       });
-      toast.success("User created");
+      
+      toast.success(data?.message || "User created");
+      
+      const creds = data?.credentials || {};
+      setCreatedCreds({
+        email: creds.email,
+        username: creds.username,
+        password: creds.password,
+        emailSent: data?.emailSent === true,
+      });
+
+      if (data?.emailSent) {
+        toast.success(`Credentials emailed to the ${role.replace("_", " ")}.`);
+      } else {
+        toast("User created; emailing credentials failed. Share manually.", { icon: "✉️" });
+      }
+
       onCreated?.(data);
       onClose();
     } catch (err) {
@@ -131,7 +145,10 @@ const CreateUserModal = ({ open, onClose, onCreated }) => {
            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
               <UserPlus size={24} />
            </div>
-           <h3 className="text-2xl font-black text-slate-800 tracking-tight">Create User</h3>
+           <div>
+             <h3 className="text-2xl font-black text-slate-800 tracking-tight">Create User</h3>
+             <p className="text-xs font-medium text-slate-500 mt-1">Username and temp password will be generated automatically.</p>
+           </div>
         </div>
         <form className="space-y-4" onSubmit={submit}>
           <input className="bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm w-full transition-colors focus:bg-white" placeholder="Full name *" value={fullName} onChange={(e)=>setFullName(e.target.value)} />
@@ -140,7 +157,6 @@ const CreateUserModal = ({ open, onClose, onCreated }) => {
             <option value="project_manager">Project Manager</option>
             <option value="client">Client</option>
           </select>
-          <input className="bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm w-full transition-colors focus:bg-white" placeholder="Temporary password *" value={password} onChange={(e)=>setPassword(e.target.value)} />
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
             <button className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors" type="button" onClick={onClose} disabled={loading}>Cancel</button>
             <button className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm flex items-center gap-2" disabled={loading} type="submit">
@@ -251,6 +267,7 @@ const SuperAdminManageAccPage = () => {
   const [role, setRole] = useState("all");
   const [status, setStatus] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
+  const [createdCreds, setCreatedCreds] = useState(null);
 
   // Requests state
   const [reqs, setReqs] = useState([]);
@@ -509,7 +526,7 @@ const SuperAdminManageAccPage = () => {
       </div>
 
       {/* Modals */}
-      <CreateUserModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={() => fetchUsers()} />
+      <CreateUserModal open={createOpen} onClose={() => setCreateOpen(false)} onCreated={() => fetchUsers()} setCreatedCreds={setCreatedCreds} />
       <ResetActionModal
         open={actionOpen}
         mode={actionMode}
@@ -517,6 +534,45 @@ const SuperAdminManageAccPage = () => {
         onClose={() => setActionOpen(false)}
         onDone={() => fetchRequests()}
       />
+
+      {/* Credentials Created Modal */}
+      {createdCreds && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setCreatedCreds(null)} />
+          <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 z-10 border border-slate-100 scale-in-center text-center">
+            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 mx-auto mb-6 shadow-inner">
+               <CheckCircle2 size={32} />
+            </div>
+            
+            <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Account Created!</h3>
+            
+            {"emailSent" in createdCreds ? (
+              createdCreds.emailSent ? (
+                <div className="inline-block bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-100 mb-6">Email Automatically Sent</div>
+              ) : (
+                <div className="inline-block bg-rose-50 text-rose-600 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border border-rose-100 mb-6">Email Delivery Failed</div>
+              )
+            ) : null}
+
+            <p className="text-sm font-medium text-slate-500 mb-6">Please securely share these temporary credentials with the user.</p>
+            
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-left space-y-3 mb-8">
+              <div>
+                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Username</span>
+                 <span className="font-mono font-bold text-slate-800 text-sm bg-white px-3 py-1.5 rounded-lg border border-slate-200 block shadow-sm">{createdCreds.username || createdCreds.email}</span>
+              </div>
+              <div>
+                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Temp Password</span>
+                 <span className="font-mono font-bold text-slate-800 text-sm bg-white px-3 py-1.5 rounded-lg border border-slate-200 block shadow-sm">{createdCreds.password}</span>
+              </div>
+            </div>
+
+            <button className="w-full py-3.5 rounded-xl font-bold tracking-wide text-sm bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-sm" onClick={() => setCreatedCreds(null)}>
+               Acknowledge & Close
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

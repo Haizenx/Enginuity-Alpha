@@ -16,6 +16,17 @@ export const axiosInstance = axios.create({
   },
 });
 
+// Request interceptor: attach token from localStorage if available
+axiosInstance.interceptors.request.use((config) => {
+  const token = localStorage.getItem("enginuity_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
 // Centralized endpoints (optional, for consistency)
 export const API_ENDPOINTS = {
   AUTH: "/auth",
