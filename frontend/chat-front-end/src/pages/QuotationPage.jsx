@@ -414,22 +414,15 @@ const QuotationPage = () => {
             Supplier Management
           </button>
 
-          {/* Vertical Divider */}
-          <div className="hidden sm:block w-px h-8 bg-slate-200 mx-2"></div>
-
           <button
             onClick={() => setActiveTab('quotation')}
-            className={`px-8 py-3 rounded-xl font-black tracking-widest uppercase text-sm transition-all relative overflow-hidden group ${
+            className={`px-6 py-3 rounded-xl font-bold tracking-wide text-sm transition-all shadow-sm ${
               activeTab === 'quotation' 
-                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.4)] border-none scale-[1.02]' 
-                : 'bg-slate-800 text-white hover:bg-slate-900 shadow-md border-none'
+                ? 'bg-sky-500 text-white shadow-md' 
+                : 'bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-800'
             }`}
           >
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-            <span className="relative z-10 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-              Quotation Wizard
-            </span>
+            Quotation Maker
           </button>
         </div>
 
