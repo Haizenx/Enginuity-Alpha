@@ -851,47 +851,40 @@ ${lines.join("\n")}\n`;
     try {
       const imagePart = await fileToGenerativePart(image);
 
-      const fullPrompt = `Your task is to analyze the provided image and provide a structured response, focusing on the **Philippine construction context** (using PHP, local costs/practices). First, determine if the image is a construction blueprint, architectural drawing, or floor plan. If its not a blueprint/quotation or not construction related dont produce the other sections
+      const fullPrompt = `You are an elite, highly experienced structural engineer, chief architect, and master estimator. Your task is to perform a comprehensive, professional-grade analysis of the provided image, focusing strictly on the **Philippine construction and engineering context** (using PHP, local costs, and structural practices like tropical design, hollow blocks, typhoon, and earthquake resilience). 
 
-             Please structure your response with clear section headers as follows:
+First, explicitly confirm if the image is a construction blueprint, architectural drawing, or floor plan. If it is NOT a valid architectural or construction document, state this clearly and do not generate the subsequent estimation sections.
 
-             **DESCRIPTION:**
-             Provide a very brief description (maximum 2 sentences) of what the image shows. Get straight to the point and tailor it to the Philippine construction context. 
+Please structure your response with the following precise engineering section headers:
 
-             **ANALYSIS:**
-             Provide a structured, highly concise architectural analysis. Use a clean bulleted list. Do not write long paragraphs. Focus strictly on Philippine standards (e.g., tropical design, local materials like hollow blocks, typhoons/earthquakes).
-             
-             ${costConstraint}
+**DESCRIPTION:**
+Provide a professional, highly descriptive executive summary (maximum 3 sentences) of the document. Identify the drawing type, scope, and primary architectural intent. Tailor the terminology to Philippine engineering standards.
 
-            **DESCRIPTION:**
-             Provide a very brief overview of the query (1-2 sentences maximum).
+**ANALYSIS:**
+Perform a structured, highly concise architectural and structural analysis using a bulleted list. Detail the spatial breakdown, load-bearing indicators, room layouts, and key structural elements. Focus on Philippine standards (e.g., ventilation, structural integrity against natural disasters). Note any critical observations or clash detection zones.
 
-             **ANALYSIS:**
-             Provide a short, bulleted analysis of the construction approach or structural requirements for this query. Keep it brief and Philippine-focused.
+${costConstraint}
 
-             **MATERIALS & RECOMMENDATIONS:**
-            IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Recommend sustainable materials and construction approaches, using **Philippine market context**.
-            The table columns MUST be: **| Material Name | Chosen Supplier | Reason/Justification |**
-            - You can also suggest something that was not available on the database but you recommended to use like sustainable items that are the standard
+**MATERIALS & RECOMMENDATIONS:**
+IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Recommend high-quality, sustainable materials and construction methodologies suitable for the Philippine climate. 
+The table columns MUST be: **| Material Name | Chosen Supplier | Reason/Justification |**
+You may suggest industry-standard alternatives if specific materials are not in the provided database.
 
-            **SUPPLIER COMPARISON:**
-            IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Compare available suppliers from the Supplier Catalog for key recommended materials. Include an overall total row.
-            You can suggest something that isnt on the supplier items but provide the estimated price of it 
-            The table columns MUST be: **| Material | Supplier | Unit Price (PHP) | Pros/Cons (e.g., local, cheaper) |**
-            End the table with a row showing the **OVERALL ESTIMATED SUBTOTAL** for each supplier (e.g., | OVERALL SUBTOTAL | Supplier A PHP Value | Supplier B PHP Value | BEST OPTION |). Do NOT mix suppliers in the final recommendation; this section is only for comparison.
+**SUPPLIER COMPARISON:**
+IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Conduct a competitive analysis comparing available suppliers from the Supplier Catalog.
+The table columns MUST be: **| Material | Supplier | Unit Price (PHP) | Pros/Cons (e.g., logistics, quality) |**
+End the table with a row showing the **OVERALL ESTIMATED SUBTOTAL** for each supplier (e.g., | OVERALL SUBTOTAL | Supplier A Total | Supplier B Total | BEST OPTION |). Do NOT mix suppliers in the final recommendation; this section is strictly for comparative analysis.
 
-            **BUDGET ESTIMATE:**
-            IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Provide a **realistic cost estimate**. 
-            **CRITICAL CONSTRAINT:** If the total area/scope is unknown, **assume a common scope, such as a 10 SQ.M. standard ceiling (3m x 3.33m) or a 50 SQ.M. floor area, and calculate quantities accurately for that assumed scope.** Use Philippines construction benchmarks (e.g., ₱20,000 to ₱30,000 per sq.m. for standard build) to guide overall pricing and ensure Unit Prices are realistic.
-            Include a FINAL ROW for the Grand Total Cost which just give the total cost of the estimated budget.
-            The table columns MUST be: **| Item | Quantity (e.g., 12.00 pcs) | Unit | Unit Price (PHP) | Subtotal (PHP) |**
-            Include a FINAL ROW for the Grand Total Cost which just give the total cost of the estimated budget.
-    
+**BUDGET ESTIMATE:**
+IMPORTANT: Output this section as a **Markdown Table** (using pipe '|' delimiters). Provide a rigorous, realistic cost estimate based on current Philippine construction benchmarks (e.g., ₱20,000 to ₱35,000 per sq.m. for standard build).
+**CRITICAL CONSTRAINT:** If the total area/scope is unspecified, explicitly declare an assumed baseline scope (e.g., a 50 SQ.M. standard floor area) and calculate quantities accurately based on that baseline.
+The table columns MUST be: **| Item | Quantity (e.g., 12.00 pcs) | Unit | Unit Price (PHP) | Subtotal (PHP) |**
+Include a FINAL ROW for the **Grand Total Estimated Cost**.
 
-            ${textPrompt.trim() ? `Also consider this specific user request: "${textPrompt.trim()}".` : ""} ${additionalContextForAI} ${supplierCatalogContext}
+${textPrompt.trim() ? `Also consider this specific client request: "${textPrompt.trim()}".` : ""} ${additionalContextForAI} ${supplierCatalogContext}
 
-            **CONCLUSION:**
-            Choose EXACTLY ONE supplier as the final recommendation for this project and state WHY (e.g., best total cost, sustainability, logistics). Do NOT recommend mixing suppliers. Tell also some details about the project Keep it to 5 sentences. Also if the user has a specific question answer it first before the conclusion sentence`;
+**CONCLUSION:**
+Deliver your final expert recommendation. Choose EXACTLY ONE supplier as the final recommendation for the entire project phase and justify your choice based on total cost, sustainability, and logistics. Do NOT recommend mixing suppliers. If the client asked a specific question, address it directly at the beginning of the conclusion. Limit to 5 sentences.`;
 
       const geminiResult = await model.generateContent([fullPrompt, imagePart]);
 
@@ -1142,7 +1135,7 @@ ${lines.join("\n")}\n`;
                   htmlFor="image-upload"
                   className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider"
                 >
-                  1. Upload Blueprint
+                  1. Upload Blueprint / Floor Plan
                 </label>
                 <div className="relative group">
                   <input
@@ -1345,7 +1338,7 @@ ${lines.join("\n")}\n`;
                       </div>
                       <div className="space-y-3 text-center">
                         <h3 className="text-3xl text-slate-800 font-extrabold tracking-tight">
-                          Processing Blueprint
+                          Processing Blueprint / Floor Plan
                         </h3>
                         <p className="text-sm text-indigo-600 font-bold uppercase tracking-widest animate-pulse">
                           Running architectural analysis...
@@ -1673,10 +1666,10 @@ ${lines.join("\n")}\n`;
                     </span>
                   </div>
                   <h3 className="text-4xl font-black text-slate-800 mb-4 tracking-tight group-hover:text-indigo-900 transition-colors">
-                    Upload Blueprint
+                    Upload Blueprint / Floor Plan
                   </h3>
-                  <p className="text-center max-w-lg text-slate-500 font-medium leading-loose text-lg">
-                    Click anywhere here to upload a construction blueprint, or type a query on the left
+                  <p className="text-slate-500 mt-2">
+                    Click anywhere here to upload a construction blueprint, floor plan, or drawing, or type a query on the left
                     to generate an AI-powered report, cost estimate, and
                     material recommendations.
                   </p>
@@ -1694,8 +1687,9 @@ ${lines.join("\n")}\n`;
             How It Works
           </h2>
           <p className="text-slate-500 text-sm">
-            Get accurate blueprint analysis and budget estimates in three simple
-            steps.
+            Get accurate blueprint and floor plan analysis and budget estimates in three simple
+            steps. Just upload your image, review the initial breakdown, and
+            chat for deeper insights or adjustments.
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
