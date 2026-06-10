@@ -87,8 +87,18 @@ export const analyzeWithCloudConvert = async (req, res) => {
         };
 
         const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const prompt = req.body.prompt || 'Analyze this image. If it is a construction blueprint or floor plan, provide a detailed analysis. Otherwise, simply describe its contents.';
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        const professionalPrompt = `You are an elite, highly experienced structural engineer and chief architect. Perform a comprehensive, professional-grade analysis of this uploaded construction blueprint, floor plan, or architectural drawing.
+Your analysis MUST adhere to the highest industry standards and include the following details where applicable:
+1. Document Type & Scope: Identify the type of drawing (e.g., HVAC, Electrical, Structural, Floor Plan, Elevation) and its primary purpose.
+2. Structural & Spatial Breakdown: Detail the dimensions, load-bearing indicators, room layouts, and key structural elements.
+3. Material & Component Estimation: Provide an expert estimation or list of visible materials, fixtures, and assemblies required.
+4. Compliance & Engineering Safety: Note any visible safety protocols, potential code compliance highlights, or standard architectural conventions used.
+5. Critical Observations: Highlight potential clash detection zones, unusual design choices, or areas requiring close attention during construction.
+
+Format your response in a highly structured, professional report using markdown headers, bullet points, and precise engineering terminology. Do not hallucinate dimensions if they are illegible, but make expert professional inferences based on standard architectural proportions.`;
+
+        const prompt = req.body.prompt || professionalPrompt;
         const result = await model.generateContent([prompt, imagePart]);
         const responseText = result.response.text();
         console.log("SUCCESS: Gemini analysis complete.");
