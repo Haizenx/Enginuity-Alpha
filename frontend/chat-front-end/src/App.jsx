@@ -20,9 +20,13 @@ import BlueprintPage from "./pages/BlueprintPage.jsx";
 import QuotationPage from "./pages/QuotationPage.jsx";
 
 import { useAuthStore } from "./store/useAuthStore";
+import { useChatStore } from "./store/useChatStore";
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import { useThemeStore } from "./store/useThemeStore";
+
+import IncomingCallModal from "./components/IncomingCallModal";
+import VideoCallModal from "./components/VideoCallModal";
 
 // Simple role guard component
 const RequireRole = ({ roles, children }) => {
@@ -35,6 +39,7 @@ const RequireRole = ({ roles, children }) => {
 
 const App = () => {
   const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
+  const { subscribeToCalls, unsubscribeFromCalls, activeCall } = useChatStore();
   const { theme } = useThemeStore();
   const location = useLocation();
 
@@ -43,6 +48,14 @@ const App = () => {
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  useEffect(() => {
+    if (authUser) {
+      subscribeToCalls();
+    } else {
+      unsubscribeFromCalls();
+    }
+  }, [authUser, subscribeToCalls, unsubscribeFromCalls]);
 
   console.log("Current authUser state:", authUser);
 
@@ -110,6 +123,18 @@ const App = () => {
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       )}
+
+      {/* Global Call Modals */}
+      <IncomingCallModal />
+      {activeCall && authUser && (
+        <VideoCallModal
+          currentUser={authUser}
+          targetUser={activeCall.targetUser}
+          isCaller={activeCall.isCaller}
+          onClose={() => useChatStore.getState().clearCall()}
+        />
+      )}
+
       <Toaster />
     </div>
   );

@@ -60,6 +60,35 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  sendSystemMessage: async (messageData) => {
+    try {
+      const targetId = messageData.receiverId;
+      const res = await axiosInstance.post(`/messages/send/${targetId}`, messageData);
+      
+      const { selectedUser } = get();
+      if (selectedUser && selectedUser._id === targetId) {
+        set((state) => ({ 
+          messages: [...state.messages, res.data],
+          users: state.users.map(u => 
+            u._id === targetId 
+              ? { ...u, updatedAt: new Date().toISOString(), lastActivity: new Date().toISOString() } 
+              : u
+          )
+        }));
+      } else {
+        set((state) => ({ 
+          users: state.users.map(u => 
+            u._id === targetId 
+              ? { ...u, updatedAt: new Date().toISOString(), lastActivity: new Date().toISOString() } 
+              : u
+          )
+        }));
+      }
+    } catch (error) {
+      console.error("System message error:", error);
+    }
+  },
+
   subscribeToMessages: () => {
     const socket = useAuthStore.getState().socket;
     
@@ -145,5 +174,53 @@ export const useChatStore = create((set, get) => ({
     setTimeout(() => {
       get().subscribeToMessages();
     }, 100);
+  },
+
+  // --- WebRTC / Video Call Signaling ---
+  incomingCall: null, // { callerId, callerName, callerAvatar }
+  callStatus: "idle", // 'idle', 'ringing', 'active'
+  activeCall: null,   // { isCaller: boolean, targetUser: Object }
+  
+  setIncomingCall: (callData) => set({ incomingCall: callData, callStatus: "ringing" }),
+  clearCall: () => set({ incomingCall: null, callStatus: "idle", activeCall: null }),
+  setCallStatus: (status) => set({ callStatus: status }),
+  setActiveCall: (callData) => set({ activeCall: callData, callStatus: "active" }),
+
+  subscribeToCalls: () => {
+    const socket = useAuthStore.getState().socket;
+    if (!socket) return;
+    
+    socket.off("incomingCall");
+    socket.off("callAccepted");
+    socket.off("callRejected");
+    socket.off("callEnded");
+
+    socket.on("incomingCall", (callerData) => {
+      get().setIncomingCall(callerData);
+    });
+    
+    socket.on("callAccepted", () => {
+      // Caller receives this when callee accepts
+      get().setCallStatus("active");
+    });
+    
+    socket.on("callRejected", () => {
+      toast.error("Call declined");
+      get().clearCall();
+    });
+    
+    socket.on("callEnded", () => {
+      get().clearCall();
+    });
+  },
+
+  unsubscribeFromCalls: () => {
+    const socket = useAuthStore.getState().socket;
+    if (socket) {
+      socket.off("incomingCall");
+      socket.off("callAccepted");
+      socket.off("callRejected");
+      socket.off("callEnded");
+    }
   },
 }));

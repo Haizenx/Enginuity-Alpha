@@ -18,7 +18,26 @@ const ChatHeader = ({ selectedUser, onClose }) => {
       console.error('Missing user data for video call');
       return;
     }
-    setShowVideoModal(true);
+    
+    const socket = useAuthStore.getState().socket;
+    if (socket) {
+      socket.emit("call:initiate", {
+        receiverId: user._id,
+        callerData: {
+          callerId: currentUser._id,
+          callerName: currentUser.fullName,
+          callerAvatar: currentUser.profilePic
+        }
+      });
+      
+      // Set active call so App.jsx renders VideoCallModal
+      import("../store/useChatStore").then(module => {
+        module.useChatStore.getState().setActiveCall({
+          isCaller: true,
+          targetUser: user
+        });
+      });
+    }
   };
 
   return (
@@ -68,15 +87,6 @@ const ChatHeader = ({ selectedUser, onClose }) => {
           </div>
         </div>
       </div>
-
-      {/* Video Call Modal */}
-      {showVideoModal && currentUser && (
-        <VideoCallModal
-          currentUser={currentUser}
-          targetUser={user}
-          onClose={() => setShowVideoModal(false)}
-        />
-      )}
     </>
   );
 };

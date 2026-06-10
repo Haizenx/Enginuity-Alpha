@@ -95,6 +95,36 @@ export function initSocketServer(httpServer, allowedOrigins) {
       if (!to) return;
       io.to(to).emit("message:received", payload);
     });
+
+    // --- WebRTC / Video Call Signaling ---
+    
+    socket.on("call:initiate", (payload) => {
+      // payload: { receiverId, callerData }
+      const to = String(payload?.receiverId || "");
+      if (!to) return;
+      io.to(to).emit("incomingCall", payload.callerData);
+    });
+
+    socket.on("call:accept", (payload) => {
+      // payload: { callerId }
+      const to = String(payload?.callerId || "");
+      if (!to) return;
+      io.to(to).emit("callAccepted");
+    });
+
+    socket.on("call:reject", (payload) => {
+      // payload: { callerId }
+      const to = String(payload?.callerId || "");
+      if (!to) return;
+      io.to(to).emit("callRejected");
+    });
+
+    socket.on("call:end", (payload) => {
+      // payload: { targetId }
+      const to = String(payload?.targetId || "");
+      if (!to) return;
+      io.to(to).emit("callEnded");
+    });
   });
 }
 

@@ -3,9 +3,12 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import AgoraRTC from 'agora-rtc-sdk-ng';
 import { Phone, Mic, MicOff, Video, VideoOff, User } from 'lucide-react'; // CHANGE: Imported User icon
 
+import { useChatStore } from '../store/useChatStore';
+import { useAuthStore } from '../store/useAuthStore';
+
 const API_BASE = import.meta.env.VITE_BACKEND_URL || '';
 
-const VideoCallModal = ({ currentUser, targetUser, onClose }) => {
+const VideoCallModal = ({ currentUser, targetUser, isCaller, onClose }) => {
   const [localVideoTrack, setLocalVideoTrack] = useState(null);
   const [localAudioTrack, setLocalAudioTrack] = useState(null);
   const [remoteUsers, setRemoteUsers] = useState([]);
@@ -17,6 +20,7 @@ const VideoCallModal = ({ currentUser, targetUser, onClose }) => {
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
+  const callStartTime = useRef(null);
 
   const client = useMemo(() => AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' }), []);
   const APP_ID = import.meta.env.VITE_AGORA_APP_ID;
@@ -84,7 +88,6 @@ const VideoCallModal = ({ currentUser, targetUser, onClose }) => {
         if (mic) setLocalAudioTrack(mic);
         if (cam) setLocalVideoTrack(cam);
         
-        // If no camera was found, set video disabled state so UI reflects it
         if (!cam && mounted) setIsVideoEnabled(false);
 
         await client.join(APP_ID, channel, token, null);
@@ -126,22 +129,23 @@ const VideoCallModal = ({ currentUser, targetUser, onClose }) => {
       })();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [client, currentUser._id, targetUser._id]); // CHANGE: Simplified dependencies
+  }, [client, currentUser._id, targetUser._id]);
 
-  // CHANGE: This new effect is now the single source of truth for playing the local video.
+  useEffect(() => {
+    // Only set start time once remote user joins so duration reflects actual talk time
+    if (remoteUsers.length > 0 && !callStartTime.current) {
+      callStartTime.current = Date.now();
+    }
+  }, [remoteUsers]);
+
   useEffect(() => {
     if (localVideoTrack && localVideoRef.current) {
       localVideoTrack.play(localVideoRef.current);
     }
     return () => {
-      // Stop the track when the component unmounts or the track changes
       localVideoTrack?.stop();
     };
   }, [localVideoTrack]);
-
-
-  // CHANGE: Removed the two useEffects that handled video toggling and resizing,
-  // as they are no longer needed. Agora's `setEnabled` handles rendering state.
 
   const toggleMute = async () => {
     if (localAudioTrack) {
@@ -151,7 +155,6 @@ const VideoCallModal = ({ currentUser, targetUser, onClose }) => {
     }
   };
 
-  // CHANGE: Simplified the video toggle function
   const toggleVideo = async () => {
     if (localVideoTrack) {
       const nextEnabled = !isVideoEnabled;
@@ -162,6 +165,33 @@ const VideoCallModal = ({ currentUser, targetUser, onClose }) => {
   
   const endCall = async () => {
     try {
+      // 1. Notify other party via socket
+      const socket = useAuthStore.getState().socket;
+      if (socket) {
+        socket.emit("call:end", { targetId: targetUser._id });
+      }
+
+      // 2. Compute Duration & Send Log (Caller ONLY prevents duplicates)
+      if (isCaller) {
+        if (callStartTime.current) {
+          const durationMs = Date.now() - callStartTime.current;
+          const mins = Math.floor(durationMs / 60000);
+          const secs = Math.floor((durationMs % 60000) / 1000);
+          const timeString = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+          useChatStore.getState().sendSystemMessage({
+            text: `📞 Video call ended. Duration: ${timeString}`,
+            receiverId: targetUser._id
+          });
+        } else {
+          // They never joined
+          useChatStore.getState().sendSystemMessage({
+            text: `📞 Missed video call`,
+            receiverId: targetUser._id
+          });
+        }
+      }
+
+      // 3. Cleanup Agora
       localAudioTrack?.stop(); localAudioTrack?.close();
       localVideoTrack?.stop(); localVideoTrack?.close();
       client.removeAllListeners();
