@@ -127,7 +127,7 @@ export async function sendWelcomeCredentials({ to, fullName, username, tempPassw
         <div style="margin-top: 32px; border-top: 1px solid #e2e8f0; padding-top: 24px;">
           <h3 style="margin: 0 0 12px; color: #1e293b; font-size: 16px;">Get the Mobile App</h3>
           <p style="margin: 0 0 16px; color: #475569; font-size: 14px;">As a client, you can track your project's progress directly from your phone.</p>
-          <a href="https://drive.google.com/drive/folders/1TnX8mwWjJi46ruTzza7Bquigx2Fy5ysy?fbclid=IwY2xjawNR7ydleHRuA2FlbQIxMQABHvcleW-h5Ur2Y_k330lZmehml6ni9nQQzqEAkWDGghJrc_ERHrwGcrtufjj0_aem_SP_d33z5gg0_ScnwHAqpLQ" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 15px;">Download Android APK</a>
+          <a href="https://drive.google.com/drive/u/0/folders/1Nh1Low3JWFhA9bHQPOuUpgiQJ9afJpqy?fbclid=IwY2xjawSXOkBleHRuA2FlbQIxMABicmlkETEzYjc3czZTSjV5QlVxTkNEc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHiLyKXbGZ2tdKjSg5jZvL70gpKgHA8GLOLWP4jFZ3ZbQkzzfXtFsIAEpzaWq_aem_u5i_DVu_BKnwFhlpzI8pqw" style="display: inline-block; background-color: #4f46e5; color: #ffffff; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-size: 15px;">Download Android APK</a>
         </div>
         ` : `
         <div style="margin-top: 32px; border-top: 1px solid #e2e8f0; padding-top: 24px; text-align: center;">
@@ -148,7 +148,7 @@ Hello ${fullName || "there"}, your Client account has been created.
 
 Please install our private company app using the secure link below.
 
-Download Link: https://drive.google.com/drive/folders/1TnX8mwWjJi46ruTzza7Bquigx2Fy5ysy?fbclid=IwY2xjawNR7ydleHRuA2FlbQIxMQABHvcleW-h5Ur2Y_k330lZmehml6ni9nQQzqEAkWDGghJrc_ERHrwGcrtufjj0_aem_SP_d33z5gg0_ScnwHAqpLQ
+Download Link: https://drive.google.com/drive/u/0/folders/1Nh1Low3JWFhA9bHQPOuUpgiQJ9afJpqy?fbclid=IwY2xjawSXOkBleHRuA2FlbQIxMABicmlkETEzYjc3czZTSjV5QlVxTkNEc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHiLyKXbGZ2tdKjSg5jZvL70gpKgHA8GLOLWP4jFZ3ZbQkzzfXtFsIAEpzaWq_aem_u5i_DVu_BKnwFhlpzI8pqw
 
 **Installation Instructions:**
 1.  Click the link above to download the file. You may see a warning that Google can't scan the file for viruses; this is normal for this type of file.
