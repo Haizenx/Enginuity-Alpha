@@ -319,6 +319,13 @@ export const setSuperAdminPassword = async (req, res) => {
 // =========================================================================
 
 /**
+ * Helper: Generate a 6-digit numeric verification code (OTP).
+ */
+const generateNumericOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+/**
  * Endpoint: POST /api/auth/forgot-password-mobile
  * Generates an OTP, saves it to the User model, and sends an email to the user.
  */
