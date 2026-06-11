@@ -2,6 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import { axiosInstance } from '../lib/axios';
 
+const PRESETS = {
+  custom: { label: 'Custom', months: 0 },
+  minor_renovation: { label: 'Minor Renovation (1 Month)', months: 1 },
+  standard_renovation: { label: 'Standard Renovation (3 Months)', months: 3 },
+  new_building: { label: 'New Building / Residential (6 Months)', months: 6 },
+  large_scale: { label: 'Large Scale Construction (12 Months)', months: 12 },
+};
+
 const ProjectForm = ({ onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     clientId: '',
@@ -12,6 +20,7 @@ const ProjectForm = ({ onSubmit, onCancel }) => {
     targetDeadline: ''
   });
   const [clients, setClients] = useState([]);
+  const [projectPreset, setProjectPreset] = useState('custom');
 
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -19,11 +28,32 @@ const ProjectForm = ({ onSubmit, onCancel }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    if (name === 'targetDeadline' && projectPreset !== 'custom') {
+      setProjectPreset('custom');
+    }
   };
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
   };
+
+  const addMonths = (dateStr, months) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    date.setMonth(date.getMonth() + months);
+    return date.toISOString().split('T')[0];
+  };
+
+  useEffect(() => {
+    if (projectPreset !== 'custom' && formData.startDate) {
+      const monthsToAdd = PRESETS[projectPreset].months;
+      const newDeadline = addMonths(formData.startDate, monthsToAdd);
+      if (formData.targetDeadline !== newDeadline) {
+        setFormData(prev => ({ ...prev, targetDeadline: newDeadline }));
+      }
+    }
+  }, [projectPreset, formData.startDate]);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -119,28 +149,56 @@ const ProjectForm = ({ onSubmit, onCancel }) => {
         ></textarea>
       </div>
 
-      <div>
-        <label className="label">Start Date</label>
-        <input
-          type="date"
-          name="startDate"
-          value={formData.startDate}
-          onChange={handleChange}
-          className="input input-bordered w-full"
-          required
-        />
-      </div>
+      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-4 space-y-4">
+        <div>
+          <label className="label font-semibold text-slate-700">Project Type Preset</label>
+          <select
+            value={projectPreset}
+            onChange={(e) => setProjectPreset(e.target.value)}
+            className="select select-bordered w-full bg-white border-slate-300 focus:border-indigo-500"
+          >
+            {Object.entries(PRESETS).map(([key, { label }]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
+          </select>
+          {projectPreset !== 'custom' && (
+            <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Auto-calculates deadline to {PRESETS[projectPreset].months} months from Start Date
+            </p>
+          )}
+        </div>
 
-      <div>
-        <label className="label">Target Deadline</label>
-        <input
-          type="date"
-          name="targetDeadline"
-          value={formData.targetDeadline}
-          onChange={handleChange}
-          className="input input-bordered w-full"
-          required
-        />
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <label className="label font-semibold text-slate-700">Start Date</label>
+            <input
+              type="date"
+              name="startDate"
+              value={formData.startDate}
+              onChange={handleChange}
+              className="input input-bordered w-full bg-white border-slate-300 focus:border-indigo-500"
+              required
+            />
+          </div>
+
+          <div className="flex-1">
+            <label className="label font-semibold text-slate-700">
+              Target Deadline
+              {projectPreset !== 'custom' && formData.startDate && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full ml-2">Auto-set</span>}
+            </label>
+            <input
+              type="date"
+              name="targetDeadline"
+              value={formData.targetDeadline}
+              onChange={handleChange}
+              className="input input-bordered w-full bg-white border-slate-300 focus:border-indigo-500"
+              required
+            />
+          </div>
+        </div>
       </div>
 
       <div>

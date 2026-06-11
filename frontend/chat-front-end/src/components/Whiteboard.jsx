@@ -3,7 +3,10 @@ import { Trash2, Image as ImageIcon, X, FileText } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { pdfjs, Document, Page } from 'react-pdf';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).toString();
 
 const Whiteboard = ({ isCaller, targetUserId, onClose }) => {
   const canvasRef = useRef(null);
