@@ -336,13 +336,17 @@ export const forgotPasswordMobile = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Email address is required.' });
     }
     const normalizedEmail = email.toLowerCase().trim();
-    // 1. Find the user by their email (Must use 'email' field, not 'recoveryEmail')
-    let user = await User.findOne({ email: normalizedEmail });
-    
-    // Fallback to SuperAdmin if not found in User collection
+
+    // 1. Find the user by their recoveryEmail (since @eng.client is just a username)
+    let user = await User.findOne({ recoveryEmail: normalizedEmail });
+    let isSuperAdmin = false;
+
+    // Fallback to SuperAdmin if not found in User collection (SuperAdmins use regular email)
     if (!user) {
       user = await SuperAdmin.findOne({ email: normalizedEmail });
+      if (user) isSuperAdmin = true;
     }
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'No account registered with this email.' });
     }
@@ -355,7 +359,9 @@ export const forgotPasswordMobile = async (req, res) => {
     await user.save();
     // 4. Send email with OTP using the Nodemailer service
     try {
-      await sendOTPEmail(user.email, otp);
+      // Send to recoveryEmail for regular users, or email for SuperAdmins
+      const targetEmail = isSuperAdmin ? user.email : user.recoveryEmail;
+      await sendOTPEmail(targetEmail, otp);
       return res.status(200).json({
         success: true,
         message: 'A verification OTP has been sent to your email.'
@@ -391,8 +397,9 @@ export const resetPasswordMobile = async (req, res) => {
       });
     }
     const normalizedEmail = email.toLowerCase().trim();
-    // 1. Retrieve the user with the correct email
-    let user = await User.findOne({ email: normalizedEmail });
+
+    // 1. Retrieve the user using their recoveryEmail
+    let user = await User.findOne({ recoveryEmail: normalizedEmail });
     
     // Fallback to SuperAdmin
     if (!user) {
