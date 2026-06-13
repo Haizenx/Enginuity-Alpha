@@ -27,6 +27,7 @@ import { useThemeStore } from "./store/useThemeStore";
 
 import IncomingCallModal from "./components/IncomingCallModal";
 import VideoCallModal from "./components/VideoCallModal";
+import PageGuide from "./components/PageGuide";
 
 // Simple role guard component
 const RequireRole = ({ roles, children }) => {
@@ -134,6 +135,9 @@ const App = () => {
           onClose={() => useChatStore.getState().clearCall()}
         />
       )}
+
+      {/* Global Page Guide (only shown if authenticated) */}
+      {showLayout && <PageGuide />}
 
       <Toaster />
     </div>

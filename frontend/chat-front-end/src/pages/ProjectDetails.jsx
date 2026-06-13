@@ -37,6 +37,30 @@ const ProjectDetails = () => {
   const [coverFile, setCoverFile] = useState(null);
   const [uploadingCover, setUploadingCover] = useState(false);
 
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [scheduleStartDate, setScheduleStartDate] = useState("");
+  const [scheduleEndDate, setScheduleEndDate] = useState("");
+
+  const handleUpdateSchedule = async () => {
+    try {
+      await axiosInstance.put(`/projects/${projectId}/dates`, {
+        startDate: scheduleStartDate,
+        targetDeadline: scheduleEndDate
+      });
+      import("react-hot-toast").then((module) => module.default.success("Project schedule updated successfully"));
+      setIsScheduleModalOpen(false);
+      fetchProject();
+    } catch (err) {
+      import("react-hot-toast").then((module) => module.default.error(err.response?.data?.message || "Failed to update schedule"));
+    }
+  };
+
+  const openScheduleModal = () => {
+    if (project?.startDate) setScheduleStartDate(project.startDate.split('T')[0]);
+    if (project?.targetDeadline) setScheduleEndDate(project.targetDeadline.split('T')[0]);
+    setIsScheduleModalOpen(true);
+  };
+
   const { addActivity, toggleActivity, deleteActivity } = useActivities(projectId, fetchProject);
   const { uploadDocument, deleteDocument } = useDocuments(projectId, fetchProject);
 
@@ -191,10 +215,36 @@ const ProjectDetails = () => {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="flex flex-col space-y-8">
             
-            {/* Project Overview */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-sm border border-white p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow">
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-3">Project Overview</h2>
-              <p className="text-slate-600 leading-relaxed font-medium">{project?.description || "No description available."}</p>
+            {/* Project Overview & Schedule */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="md:col-span-2 bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-sm border border-white p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow">
+                <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-3">Project Overview</h2>
+                <p className="text-slate-600 leading-relaxed font-medium">{project?.description || "No description available."}</p>
+              </div>
+
+              <div className="bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-sm border border-white p-8 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-shadow flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-2xl font-black text-slate-800 tracking-tight">Schedule</h2>
+                    {canEdit && (
+                      <button onClick={openScheduleModal} className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Start Date</p>
+                      <p className="font-semibold text-slate-800">{project?.startDate ? new Date(project.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Not set'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Target Deadline</p>
+                      <p className="font-semibold text-slate-800">{project?.targetDeadline ? new Date(project.targetDeadline).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'Not set'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Analytics & Deadlines */}
@@ -262,6 +312,38 @@ const ProjectDetails = () => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {isScheduleModalOpen && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-4">Edit Project Schedule</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="label"><span className="label-text">Start Date</span></label>
+                <input
+                  type="date"
+                  value={scheduleStartDate}
+                  onChange={(e) => setScheduleStartDate(e.target.value)}
+                  className="input input-bordered w-full"
+                />
+              </div>
+              <div>
+                <label className="label"><span className="label-text">Target Deadline</span></label>
+                <input
+                  type="date"
+                  value={scheduleEndDate}
+                  onChange={(e) => setScheduleEndDate(e.target.value)}
+                  className="input input-bordered w-full"
+                />
+              </div>
+            </div>
+            <div className="modal-action">
+              <button className="btn btn-ghost" onClick={() => setIsScheduleModalOpen(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={handleUpdateSchedule}>Save</button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setIsScheduleModalOpen(false)}></div>
         </div>
       )}
     </div>

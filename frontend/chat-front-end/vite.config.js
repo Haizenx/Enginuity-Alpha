@@ -14,4 +14,16 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          pdf: ['pdfjs-dist', 'react-pdf'],
+          vendor: ['zustand', 'axios', 'socket.io-client', 'lucide-react', 'react-hot-toast']
+        }
+      }
+    }
+  }
 })

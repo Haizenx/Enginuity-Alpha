@@ -56,6 +56,7 @@ export default function SuperAdminDashboard() {
     contactNumber: "",
     startDate: "",
     targetDeadline: "",
+    durationPreset: "none",
   });
 
   // Data lists
@@ -129,10 +130,10 @@ export default function SuperAdminDashboard() {
     );
   }
 
-  // Auto-fill project fields on client select
+  // Auto-fill project fields on client select and handle duration preset
   const handleProjectFieldChange = (e) => {
     const { name, value } = e.target;
-    const updated = { ...projectForm, [name]: value };
+    let updated = { ...projectForm, [name]: value };
 
     if (name === "clientId") {
       const selected = clients.find((c) => c._id === value);
@@ -142,6 +143,23 @@ export default function SuperAdminDashboard() {
         updated.contactNumber = selected.contactNumber || "";
         updated.startDate = selected.startDate ? String(selected.startDate).slice(0, 10) : "";
         updated.targetDeadline = selected.endDate ? String(selected.endDate).slice(0, 10) : "";
+      }
+    }
+
+    if (name === "durationPreset" || (name === "startDate" && updated.durationPreset !== "none")) {
+      if (updated.startDate && updated.durationPreset !== "none") {
+        const start = new Date(updated.startDate);
+        let monthsToAdd = 0;
+        if (updated.durationPreset === "1_month") monthsToAdd = 1;
+        else if (updated.durationPreset === "3_months") monthsToAdd = 3;
+        else if (updated.durationPreset === "6_months") monthsToAdd = 6;
+        else if (updated.durationPreset === "12_months") monthsToAdd = 12;
+
+        if (monthsToAdd > 0) {
+          const end = new Date(start);
+          end.setMonth(end.getMonth() + monthsToAdd);
+          updated.targetDeadline = end.toISOString().split("T")[0];
+        }
       }
     }
 
@@ -261,7 +279,7 @@ export default function SuperAdminDashboard() {
   // Create Project
   const handleCreateProject = async (e) => {
     e.preventDefault();
-    const { clientId, projectManagerId, description, location, contactNumber, startDate, targetDeadline } = projectForm;
+    const { clientId, projectManagerId, description, location, contactNumber, startDate, targetDeadline, durationPreset } = projectForm;
 
     if (!clientId) return toast.error("Please select a client");
     if (!projectManagerId) return toast.error("Please select a project manager");
@@ -281,6 +299,7 @@ export default function SuperAdminDashboard() {
         contactNumber: contactNumber.trim(),
         startDate,
         targetDeadline,
+        durationPreset,
       });
       toast.success("Project created successfully");
 
@@ -293,6 +312,7 @@ export default function SuperAdminDashboard() {
         contactNumber: "",
         startDate: "",
         targetDeadline: "",
+        durationPreset: "none",
       });
 
       await fetchProjects();
@@ -737,6 +757,19 @@ export default function SuperAdminDashboard() {
                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Contact Number *</label>
                    <input type="text" className={inputClassName} name="contactNumber" placeholder="+63..." value={projectForm.contactNumber} onChange={handleProjectFieldChange} required />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                 <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Timeline Preset (Optional)</label>
+                    <select className={`${inputClassName} cursor-pointer`} name="durationPreset" value={projectForm.durationPreset} onChange={handleProjectFieldChange}>
+                      <option value="none">Custom Dates (No Preset)</option>
+                      <option value="1_month">1 Month Standard Build</option>
+                      <option value="3_months">3 Months Standard Build</option>
+                      <option value="6_months">6 Months Standard Build</option>
+                      <option value="12_months">12 Months Standard Build</option>
+                    </select>
+                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

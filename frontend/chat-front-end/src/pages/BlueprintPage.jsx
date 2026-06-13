@@ -232,6 +232,8 @@ const BlueprintPage = () => {
 
   const [loading, setLoading] = useState(false);
 
+  const [blueprintName, setBlueprintName] = useState("");
+
   const [result, setResult] = useState(null);
 
   const [keywords, setKeywords] = useState([]);
@@ -528,11 +530,12 @@ const BlueprintPage = () => {
   }, []);
 
 
-    const saveToHistory = async (promptText, results, inputType) => {
+    const saveToHistory = async (promptText, results, inputType, imageBase64 = null) => {
+    const finalPrompt = blueprintName.trim() ? blueprintName.trim() : (promptText || "Image Analysis");
     const newItem = {
       id: Date.now(),
       date: new Date().toISOString(),
-      prompt: promptText || "Image Analysis",
+      prompt: finalPrompt,
       type: inputType,
       previewText: results.substring(0, 100) + "...",
       fullResponse: results, 
@@ -545,14 +548,10 @@ const BlueprintPage = () => {
 
     // Save to Database
     try {
-      // For database saving, if it's an image, we need the base64 string
-      // But we only want to save if there's an image because the route requires imageBase64 currently.
-      // If we don't have the image in base64 readily available here, we might just rely on the API.
-      // Wait, let's just make the backend endpoint accept text too.
       await axiosInstance.post("/gemini/history", {
-        imageBase64: image ? image.split(',')[1] : null, // Remove data:image/jpeg;base64, prefix if present
+        imageBase64: imageBase64,
         analysis: results,
-        promptText: promptText
+        promptText: finalPrompt
       });
     } catch (err) {
       console.error("Failed to save history to DB", err);
@@ -1088,7 +1087,7 @@ IMPORTANT: You MUST explicitly declare the recommended supplier in the first lin
 
       const sections = parseResponseIntoSections(responseText);
       setParsedSections(sections);
-      saveToHistory(textPrompt, responseText, "image"); // This logic is now smarter
+      saveToHistory(textPrompt, responseText, "image", imagePart.inlineData.data); // This logic is now smarter
 
       if (responseText.trim().startsWith("Analysis:")) {
         await generateRelatedQuestions(responseText, "blueprint_analysis");
@@ -1325,6 +1324,18 @@ IMPORTANT: You MUST explicitly declare the recommended supplier in the first lin
               </div>
 
               <div className="mb-8">
+                <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">
+                  Blueprint Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Ground Floor Plan"
+                  value={blueprintName}
+                  onChange={(e) => setBlueprintName(e.target.value)}
+                  className="w-full bg-white/60 border border-slate-200 text-slate-800 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none mb-6"
+                  disabled={loading}
+                />
+
                 <label
                   htmlFor="image-upload"
                   className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wider"
@@ -1589,10 +1600,10 @@ IMPORTANT: You MUST explicitly declare the recommended supplier in the first lin
                     </div>{" "}
                     {parsedSections ? (
                       /* BENTO GRID */
-                      <div className="grid grid-cols-1 md:grid-cols-6 xl:grid-cols-12 gap-5 auto-rows-[minmax(120px,auto)]">
-                        {/* Description Bento (5 columns) */}
+                      <div className="flex flex-col gap-5">
+                        {/* Description Bento */}
                         {parsedSections.description && (
-                          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 col-span-1 md:col-span-6 xl:col-span-5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all flex flex-col">
+                          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 w-full hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all flex flex-col">
                             <div
                               onClick={() => toggleSection("description")}
                               className="flex items-center justify-between cursor-pointer mb-4 group"
@@ -1626,9 +1637,9 @@ IMPORTANT: You MUST explicitly declare the recommended supplier in the first lin
                             </div>
                           </div>
                         )}
-                        {/* Analysis Bento (7 columns) */}
+                        {/* Analysis Bento */}
                         {parsedSections.analysis && (
-                          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 col-span-1 md:col-span-6 xl:col-span-7 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all flex flex-col">
+                          <div className="bg-white rounded-3xl p-6 shadow-[0_2px_20px_rgb(0,0,0,0.03)] border border-slate-100 w-full hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all flex flex-col">
                             <div
                               onClick={() => toggleSection("analysis")}
                               className="flex items-center justify-between cursor-pointer mb-4 group"

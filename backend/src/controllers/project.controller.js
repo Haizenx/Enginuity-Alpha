@@ -1,7 +1,7 @@
-// controllers/project.controller.js
 import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import Project from "../models/project.model.js";
+import { generatePresetActivities } from "../utils/activityPresets.js";
 
 /* -------------------------- helpers / population -------------------------- */
 
@@ -27,8 +27,10 @@ export const createProject = async (req, res) => {
       clientName,
       imageUrl,
       budget,
-      activities,
+      durationPreset,
     } = req.body;
+    
+    let activities = req.body.activities || [];
 
     if (startDate && targetDeadline) {
       const start = new Date(startDate);
@@ -38,6 +40,10 @@ export const createProject = async (req, res) => {
       
       if (diffDays < 14) {
         return res.status(400).json({ message: "Project duration must be at least 14 days to be realistic." });
+      }
+
+      if (durationPreset && durationPreset !== "none" && activities.length === 0) {
+        activities = generatePresetActivities(startDate, targetDeadline);
       }
     }
 
@@ -62,7 +68,7 @@ export const createProject = async (req, res) => {
       clientName,
       imageUrl,
       budget,
-      activities: activities || [],
+      activities,
     });
 
     const populated = await populateProject(Project.findById(project._id));
@@ -438,15 +444,42 @@ export const deleteProject = async (req, res) => {
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ message: "Project not found" });
 
-    // Optional: check permissions (e.g. only superadmin or assigned manager can delete)
-    if (req.user.role !== "superadmin" && String(project.projectManager) !== String(req.user._id)) {
-       return res.status(403).json({ message: "Unauthorized to delete this project" });
+    // STRICT PERMISSION: Only Super Admins can delete projects
+    if (req.user.role !== "superadmin") {
+       return res.status(403).json({ message: "Only Super Admins are authorized to delete projects." });
     }
 
     await Project.findByIdAndDelete(projectId);
     res.status(200).json({ message: "Project deleted successfully" });
   } catch (error) {
     console.error("Error in deleteProject:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateProjectDates = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { startDate, targetDeadline } = req.body;
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: "Project not found" });
+
+    // Permissions: superadmin or assigned manager
+    const isPrimaryPM = String(project.projectManager) === String(req.user._id);
+    const isExtraPM = project.projectExtras && project.projectExtras.some(id => String(id) === String(req.user._id));
+
+    if (req.user.role !== "superadmin" && !isPrimaryPM && !isExtraPM) {
+       return res.status(403).json({ message: "Unauthorized to update project dates" });
+    }
+
+    if (startDate) project.startDate = startDate;
+    if (targetDeadline) project.targetDeadline = targetDeadline;
+
+    await project.save();
+    res.status(200).json(project);
+  } catch (error) {
+    console.error("Error in updateProjectDates:", error.message);
     res.status(500).json({ message: "Internal server error" });
   }
 };

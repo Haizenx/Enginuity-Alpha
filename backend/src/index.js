@@ -48,7 +48,7 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   // Set headers immediately on every request
   res.set({
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';",
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';",
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
@@ -125,7 +125,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(express.static(frontendDistPath, {
     setHeaders: (res, filePath) => {
       console.log(`🗂️ Serving static file: ${filePath}`);
-      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';");
+      res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' https://enginuity-alpha-1.onrender.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://enginuity-alpha-1.onrender.com wss://enginuity-alpha-1.onrender.com; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self';");
       res.setHeader('X-Content-Type-Options', 'nosniff');
       res.setHeader('X-Frame-Options', 'DENY');
       res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');

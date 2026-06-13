@@ -20,6 +20,7 @@ import {
   uploadDocument,
   deleteDocument,
   uploadCoverPhoto,
+  updateProjectDates,
 } from "../controllers/project.controller.js";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
@@ -35,6 +36,7 @@ router.get("/:projectId", protectRoute, getProjectById);
 // Project actions
 router.put("/:projectId/assign-pm", protectRoute, assignProjectManager);
 router.put("/:projectId/update-status", protectRoute, updateProjectStatus);
+router.put("/:projectId/dates", protectRoute, updateProjectDates);
 router.put("/:projectId/add-pms", protectRoute, addProjectManagers);
 router.put("/:projectId/remove-pms", protectRoute, removeProjectManagers);
 

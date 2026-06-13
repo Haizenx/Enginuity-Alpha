@@ -3,8 +3,10 @@ import { axiosInstance } from '../lib/axios';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
+import { useAuthStore } from '../store/useAuthStore';
 
 const ProjectPage = () => {
+  const { authUser } = useAuthStore();
   const [currentProjects, setCurrentProjects] = useState([]);
   const [finishedProjects, setFinishedProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -109,14 +111,16 @@ const ProjectPage = () => {
               <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/80" />
               
               {/* Floating Delete Button */}
-              <button
-                onClick={(e) => handleDeleteProject(project._id, e)}
-                className="absolute top-4 right-4 z-20 p-2.5 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-rose-500 hover:text-white hover:scale-110 hover:shadow-lg transition-all duration-300 border border-white/20"
-                aria-label="Delete Project"
-                title="Delete Project"
-              >
-                <Trash2 size={18} />
-              </button>
+              {authUser?.role === "superadmin" && (
+                <button
+                  onClick={(e) => handleDeleteProject(project._id, e)}
+                  className="absolute top-4 right-4 z-20 p-2.5 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-rose-500 hover:text-white hover:scale-110 hover:shadow-lg transition-all duration-300 border border-white/20"
+                  aria-label="Delete Project"
+                  title="Delete Project"
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
 
               {/* Glassmorphic Info Card */}
               <div className="absolute bottom-4 left-4 right-4 z-10 p-5 rounded-3xl bg-white/20 backdrop-blur-xl border border-white/30 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">

@@ -89,15 +89,7 @@ const ChatContainer = ({ selectedUser, onThreadLoaded, onMessageSent }) => {
     if (selectedUser) {
       console.log("ChatContainer: Setting selected user:", selectedUser.fullName);
       setSelectedUser(selectedUser);
-      
-      getMessages(selectedUser._id).then(() => {
-        // Notify parent after messages load
-        if (messages.length > 0) {
-          const last = messages[messages.length - 1];
-          const latestAt = last?.createdAt || last?.updatedAt || null;
-          if (latestAt) onThreadLoaded?.(selectedUser._id, latestAt);
-        }
-      });
+      getMessages(selectedUser._id);
     }
   }, [selectedUser?._id, setSelectedUser, getMessages]); // Fixed dependency array
 
