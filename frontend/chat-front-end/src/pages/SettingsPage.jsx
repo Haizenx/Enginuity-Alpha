@@ -217,6 +217,23 @@ const SettingsPage = () => {
     }
   };
 
+  const [recoveryEmail, setRecoveryEmail] = useState(user?.recoveryEmail || "");
+  const [isUpdatingRecovery, setIsUpdatingRecovery] = useState(false);
+
+  const handleUpdateRecovery = async (e) => {
+    e.preventDefault();
+    if (!recoveryEmail) return toast.error("Please enter a recovery email.");
+    setIsUpdatingRecovery(true);
+    try {
+      await axiosInstance.put("/auth/update-profile", { recoveryEmail });
+      toast.success("Recovery email updated successfully.");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update recovery email.");
+    } finally {
+      setIsUpdatingRecovery(false);
+    }
+  };
+
   const inputClassName = "bg-slate-50 border border-slate-200 text-slate-800 font-medium text-sm rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-indigo-500 outline-none shadow-sm w-full transition-colors focus:bg-white";
 
   return (
@@ -258,6 +275,38 @@ const SettingsPage = () => {
              </button>
           </div>
         </div>
+
+        {/* Recovery Email Section (For PMs/Clients) */}
+        {userRole !== "superadmin" && (
+          <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-sm hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center gap-3 mb-4">
+               <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center shadow-inner">
+                  <Send size={20} />
+               </div>
+               <h2 className="text-xl font-black text-slate-800 tracking-tight">Account Recovery</h2>
+            </div>
+            <p className="text-sm font-medium text-slate-500 mb-6 pl-13">
+              Set a dedicated recovery email address so you can securely reset your password via OTP if you ever forget it.
+            </p>
+            <form onSubmit={handleUpdateRecovery} className="pl-13 flex flex-col sm:flex-row gap-3 max-w-lg">
+              <input 
+                type="email" 
+                className={inputClassName} 
+                placeholder="Recovery Email" 
+                value={recoveryEmail}
+                onChange={(e) => setRecoveryEmail(e.target.value)}
+                required
+              />
+              <button 
+                type="submit" 
+                className="px-6 py-3 rounded-xl font-bold tracking-wide text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-sm whitespace-nowrap"
+                disabled={isUpdatingRecovery}
+              >
+                {isUpdatingRecovery ? "Updating..." : "Save Email"}
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Theme Section */}
         <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] border border-white shadow-sm hover:shadow-xl transition-all duration-300">

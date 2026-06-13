@@ -27,7 +27,19 @@ export const createProject = async (req, res) => {
       clientName,
       imageUrl,
       budget,
+      activities,
     } = req.body;
+
+    if (startDate && targetDeadline) {
+      const start = new Date(startDate);
+      const end = new Date(targetDeadline);
+      const diffTime = end - start;
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      
+      if (diffDays < 14) {
+        return res.status(400).json({ message: "Project duration must be at least 14 days to be realistic." });
+      }
+    }
 
     const client = await User.findOne({ _id: clientId, role: "client" });
     if (!client) return res.status(404).json({ message: "Client not found" });
@@ -50,6 +62,7 @@ export const createProject = async (req, res) => {
       clientName,
       imageUrl,
       budget,
+      activities: activities || [],
     });
 
     const populated = await populateProject(Project.findById(project._id));

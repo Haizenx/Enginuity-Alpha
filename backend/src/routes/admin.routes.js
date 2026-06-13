@@ -13,6 +13,7 @@ import {
   setUserPassword,
   deactivateUser,
   reactivateUser,
+  forceResetUserPassword,
 } from "../controllers/admin.controller.js";
 
 const router = express.Router();
@@ -35,6 +36,7 @@ router.get("/users", listUsers);
 router.get("/users/:id", getUser);
 router.patch("/users/:id", updateUser);
 router.patch("/users/:id/password", setUserPassword);
+router.post("/users/:id/force-reset", forceResetUserPassword);
 router.patch("/users/:id/deactivate", deactivateUser);
 router.patch("/users/:id/reactivate", reactivateUser);
 

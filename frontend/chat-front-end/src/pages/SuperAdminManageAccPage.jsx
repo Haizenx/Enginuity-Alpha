@@ -352,6 +352,22 @@ const SuperAdminManageAccPage = () => {
     }
   };
 
+  const handleForceResetPassword = async (user) => {
+    if (window.confirm(`Force a password reset for ${user.fullName}?`)) {
+      try {
+        const { data } = await axiosInstance.post(`/admin/users/${user._id}/force-reset`);
+        toast.success("Password reset successfully.");
+        setCreatedCreds({
+          username: user.email,
+          password: data.tempPassword,
+          emailSent: data.emailSent
+        });
+      } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to force reset password.");
+      }
+    }
+  };
+
   const openFulfill = (req) => {
     setSelectedReq(req);
     setActionMode("fulfill");
@@ -489,6 +505,13 @@ const SuperAdminManageAccPage = () => {
                         </td>
                         <td className="py-4 px-6 text-right">
                           <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-500 hover:text-white border border-indigo-100 transition-colors shadow-sm"
+                              onClick={() => handleForceResetPassword(u)}
+                              title="Force Reset Password"
+                            >
+                              <KeyRound size={14} />
+                            </button>
                             <button
                               className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors shadow-sm border ${u.isActive ? 'bg-amber-50 text-amber-600 hover:bg-amber-500 hover:text-white border-amber-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white border-emerald-100'}`}
                               onClick={() => deactivate(u)}

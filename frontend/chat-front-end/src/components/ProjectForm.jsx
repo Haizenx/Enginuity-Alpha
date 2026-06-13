@@ -1,6 +1,6 @@
-// components/ProjectForm.jsx
 import React, { useEffect, useState } from 'react';
 import { axiosInstance } from '../lib/axios';
+import { generateActivities } from '../utils/activityTemplates';
 
 const PRESETS = {
   custom: { label: 'Custom', months: 0 },
@@ -70,6 +70,18 @@ const ProjectForm = ({ onSubmit, onCancel }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (formData.startDate && formData.targetDeadline) {
+      const start = new Date(formData.startDate);
+      const end = new Date(formData.targetDeadline);
+      const diffTime = end - start;
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+      
+      if (diffDays < 14) {
+        alert('Project duration must be at least 14 days to be realistic.');
+        return;
+      }
+    }
+
     try {
       let uploadedUrl = '';
 
@@ -83,9 +95,12 @@ const ProjectForm = ({ onSubmit, onCancel }) => {
         setIsUploading(false);
       }
 
+      const activities = projectPreset !== 'custom' ? generateActivities(projectPreset, formData.startDate) : undefined;
+
       const finalData = {
         ...formData,
         fileUrl: uploadedUrl, // Optional: you can name it whatever suits your backend
+        activities,
       };
 
       onSubmit(finalData); // Call parent handler with full data

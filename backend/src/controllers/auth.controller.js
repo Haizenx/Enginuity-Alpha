@@ -158,13 +158,25 @@ export const logout = (req, res) => {
 // ---------------------- UPDATE PROFILE ----------------------
 export const updateProfile = async (req, res) => {
   try {
-    const { profilePic } = req.body;
-    if (!profilePic) return res.status(400).json({ message: "Profile pic is required" });
+    const { profilePic, recoveryEmail } = req.body;
+    let updates = {};
 
-    const upload = await cloudinary.uploader.upload(profilePic);
+    if (profilePic) {
+      const upload = await cloudinary.uploader.upload(profilePic);
+      updates.profilePic = upload.secure_url;
+    }
+
+    if (recoveryEmail !== undefined) {
+      updates.recoveryEmail = recoveryEmail.toLowerCase().trim();
+    }
+
+    if (Object.keys(updates).length === 0) {
+       return res.status(400).json({ message: "No data provided to update" });
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      { profilePic: upload.secure_url },
+      updates,
       { new: true }
     );
 
@@ -337,8 +349,13 @@ export const forgotPasswordMobile = async (req, res) => {
     }
     const normalizedEmail = email.toLowerCase().trim();
 
-    // 1. Find the user by their recoveryEmail (since @eng.client is just a username)
-    let user = await User.findOne({ recoveryEmail: normalizedEmail });
+    // 1. Find the user by their recoveryEmail or email (so PMs can use this)
+    let user = await User.findOne({ 
+      $or: [
+        { recoveryEmail: normalizedEmail }, 
+        { email: normalizedEmail }
+      ] 
+    });
     let isSuperAdmin = false;
 
     // Fallback to SuperAdmin if not found in User collection (SuperAdmins use regular email)
@@ -398,8 +415,13 @@ export const resetPasswordMobile = async (req, res) => {
     }
     const normalizedEmail = email.toLowerCase().trim();
 
-    // 1. Retrieve the user using their recoveryEmail
-    let user = await User.findOne({ recoveryEmail: normalizedEmail });
+    // 1. Retrieve the user using their recoveryEmail or email
+    let user = await User.findOne({ 
+      $or: [
+        { recoveryEmail: normalizedEmail }, 
+        { email: normalizedEmail }
+      ] 
+    });
     
     // Fallback to SuperAdmin
     if (!user) {

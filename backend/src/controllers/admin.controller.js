@@ -365,3 +365,45 @@ export const updateUserAvatar = async (req, res, next) => {
     next(e);
   }
 };
+
+/**
+ * Force reset a user's password (Super Admin action)
+ * Generates a temp password and attempts to email it.
+ */
+export const forceResetUserPassword = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    // Generate a random 8-character temp password
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let tempPassword = "";
+    for (let i = 0; i < 8; i++) {
+      tempPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    user.password = tempPassword; // hashed by pre-save
+    await user.save();
+
+    let emailSent = false;
+    const targetEmail = user.recoveryEmail || user.email; // prioritize recovery email if it exists
+    if (targetEmail) {
+      try {
+        await sendAdminResetNotice({
+          to: targetEmail,
+          fullName: user.fullName,
+          tempPassword: tempPassword,
+        });
+        emailSent = true;
+      } catch (e) {
+        console.error("Force reset email failed:", e.message);
+      }
+    }
+
+    res.json({ message: "Password force reset.", tempPassword, emailSent });
+  } catch (e) {
+    next(e);
+  }
+};
